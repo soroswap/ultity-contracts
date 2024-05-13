@@ -12,10 +12,9 @@ use soroban_sdk::{
         Ledger,
     },
 };
-
 // Token Contract
 pub mod token {
-    soroban_sdk::contractimport!(file = "../../core/contracts/token/target/wasm32-unknown-unknown/release/soroban_token_contract.wasm");
+    soroban_sdk::contractimport!(file = "/contracts/token/target/wasm32-unknown-unknown/release/soroban_token_contract.wasm");
     pub type TokenClient<'a> = Client<'a>;
 }
 use token::TokenClient;
@@ -26,7 +25,7 @@ pub fn create_token_contract<'a>(e: &Env, admin: & Address) -> TokenClient<'a> {
 
 // Pair Contract
 pub mod pair {
-    soroban_sdk::contractimport!(file = "../../core/contracts/pair/target/wasm32-unknown-unknown/release/soroswap_pair.wasm");
+    soroban_sdk::contractimport!(file = "/contracts/pair/target/wasm32-unknown-unknown/release/soroswap_pair.wasm");
    pub type SoroswapPairClient<'a> = Client<'a>;
 }
 use pair::SoroswapPairClient;
@@ -34,14 +33,14 @@ use pair::SoroswapPairClient;
 
 fn pair_contract_wasm(e: &Env) -> BytesN<32> {
     soroban_sdk::contractimport!(
-        file = "../../core/contracts/pair/target/wasm32-unknown-unknown/release/soroswap_pair.wasm"
+        file = "/contracts/pair/target/wasm32-unknown-unknown/release/soroswap_pair.wasm"
     );
     e.deployer().upload_contract_wasm(WASM)
 }
 
 // SoroswapFactory Contract
 pub mod factory {
-    soroban_sdk::contractimport!(file = "../../core/contracts/factory/target/wasm32-unknown-unknown/release/soroswap_factory.wasm");
+    soroban_sdk::contractimport!(file = "/contracts/factory/target/wasm32-unknown-unknown/release/soroswap_factory.wasm");
     pub type SoroswapFactoryClient<'a> = Client<'a>;
 }
 use factory::SoroswapFactoryClient;
@@ -56,7 +55,7 @@ fn create_soroswap_factory<'a>(e: & Env, setter: & Address) -> SoroswapFactoryCl
 
 // SoroswapRouter Contract
 pub mod router {
-    soroban_sdk::contractimport!(file = "../../core/contracts/router/target/wasm32-unknown-unknown/release/soroswap_router.optimized.wasm");
+    soroban_sdk::contractimport!(file = "/contracts/router/target/wasm32-unknown-unknown/release/soroswap_router.optimized.wasm");
     pub type SoroswapRouterClient<'a> = Client<'a>;
 }
 use router::SoroswapRouterClient;
@@ -76,7 +75,8 @@ pub struct SoroswapTest<'a> {
     pub token_1: TokenClient<'a>,
     pub token_2: TokenClient<'a>,
     pub user: Address,
-    pub admin: Address
+    pub admin: Address,
+    pub pair_address: Address
 }
 
 impl<'a> SoroswapTest<'a> {
@@ -100,6 +100,10 @@ impl<'a> SoroswapTest<'a> {
         token_0.mint(&user, &initial_user_balance);
         token_1.mint(&user, &initial_user_balance);
         token_2.mint(&user, &initial_user_balance);
+
+        token_0.mint(&admin, &initial_user_balance);
+        token_1.mint(&admin, &initial_user_balance);
+        token_2.mint(&admin, &initial_user_balance);
 
         let factory_contract = create_soroswap_factory(&env, &admin);
         env.budget().reset_unlimited();
@@ -171,6 +175,7 @@ impl<'a> SoroswapTest<'a> {
         assert_eq!(token_1.balance(&user), 2_000_000_000_000_000_000);
         assert_eq!(token_2.balance(&user), 5_000_000_000_000_000_000);
 
+        let pair_address = factory_contract.get_pair(&token_0.address, &token_1.address);
         SoroswapTest {
             env,
             router_contract,
@@ -179,7 +184,8 @@ impl<'a> SoroswapTest<'a> {
             token_1,
             token_2,
             user,
-            admin
+            admin,
+            pair_address
         }
     }
 }
