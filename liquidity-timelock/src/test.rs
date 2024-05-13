@@ -28,6 +28,10 @@ pub struct AddLiqudityTimelockTest<'a> {
     timelock_contract: AddLiquidityTimelockClient<'a>,
     router_contract: SoroswapRouterClient<'a>,
     admin: Address,
+    token_0: Address,
+    token_1: Address,
+    user: Address,
+    pair_address: Address,
 }
 
 impl<'a> AddLiqudityTimelockTest<'a> {
@@ -42,11 +46,15 @@ impl<'a> AddLiqudityTimelockTest<'a> {
             timelock_contract,
             router_contract,
             admin: test.admin,
+            token_0: test.token_0.address,
+            token_1: test.token_1.address,
+            user: test.user,
+            pair_address: test.pair_address,
         }
     }
 }
 
 pub mod initialize;
-// pub mod swap;
-// pub mod update_protocols;
+pub mod add_liquidity;
+pub mod claim;
 // pub mod get_protocols;
