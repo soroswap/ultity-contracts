@@ -64,7 +64,7 @@ pub trait AddLiquidityTimelockTrait {
         deadline: u64,
     ) -> Result<(i128, i128, i128), ContractError>;
     
-    fn claim(e: Env) -> Result<(), ContractError>;
+    fn claim(e: Env, pair_address:Address) -> Result<(), ContractError>;
 
     fn get_admin(e: &Env) -> Result<Address, ContractError>;
 }
@@ -134,7 +134,7 @@ impl AddLiquidityTimelockTrait for AddLiquidityTimelock {
         Ok(result)
     }
 
-    fn claim(e: Env) -> Result<(), ContractError> {
+    fn claim(e: Env, pair_address: Address ) -> Result<(), ContractError> {
         check_initialized(&e)?;
         let admin = get_admin(&e);
         admin.require_auth();
@@ -145,13 +145,10 @@ impl AddLiquidityTimelockTrait for AddLiquidityTimelock {
         let current_contract = &e.current_contract_address();
         
         if  ledger_timestamp >= end_timestamp {
-            // Should get lp_token address / pair address 
-            //THIS IS A MOCKUP (TESTNET SOROSWAP XLM/USDC PAIR)
-            let address_string = String::from_str(&e, "CBDBQPQU3JPSW5RYOG7U3GDUOYNZ2I2G4VZGNLAUX27CNQR65M6XBCQN");
-            let lp_token_address = Address::from_string(&address_string);
-            let lp_balance = TokenClient::new(&e, &lp_token_address).balance(&current_contract);
+            // We recieve the pair address by args
+            let lp_balance = TokenClient::new(&e, &pair_address).balance(&current_contract);
 
-            TokenClient::new(&e, &lp_token_address).transfer(&current_contract, &admin, &lp_balance);
+            TokenClient::new(&e, &pair_address).transfer(&current_contract, &admin, &lp_balance);
         }    
         Ok(())
     }
