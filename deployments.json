@@ -1,12 +1,7 @@
 [
   {
     "contractId": "liquidity_timelock",
-    "networkPassphrase": "Standalone Network ; February 2017",
-    "contractAddress": "CCTOUVFVSJRTFAIMWP6LGXX4C3PFCA2QFDFKWJCL7F7DKX3QBBFPNWM4"
-  },
-  {
-    "contractId": "liquidity_timelock",
     "networkPassphrase": "Test SDF Network ; September 2015",
-    "contractAddress": "CC6ARRWNGKYNGDAP2H3FT26G5UQQVVDIOP7SF4I72N2QSHA55PADY2IS"
+    "contractAddress": "CB5NPXPPR55PCZHNH5GJMESB3EJSRX4N6PLKFFN6UVCG7QLITSVGVCMI"
   }
 ]

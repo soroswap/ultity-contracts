@@ -14,13 +14,13 @@ export async function liquidityTimelock(addressBook: AddressBook, contractKey: s
   try {
     const initParams = [
       new Address(loadedConfig.admin.publicKey()).toScVal(),
-      new Address("CDGHOS7DDZ7DB24J7TMFDEAIR7LS7GLMT5J5KEZMUF6MSX5BFHCXQIB3").toScVal(),
-      nativeToScVal(1715794839, {type: "u64"})
+      new Address("CB74KXQXEGKGPU5C5FI22X64AGQ63NANVLRZBS22SSCMLJDXNHED72MO").toScVal(),
+      nativeToScVal(1715877483, {type: "u64"})
     ]
     const result = await invokeCustomContract(addressBook.getContractId(contractKey), "initialize", initParams, loadedConfig.admin)
     console.log('🚀 « result:', result);
   } catch (error) {
-    console.log('🚀 « error:', error);
+    console.log('Already initialized:');
   }
 
   console.log('-------------------------------------------------------');
@@ -28,10 +28,10 @@ export async function liquidityTimelock(addressBook: AddressBook, contractKey: s
   console.log('-------------------------------------------------------');
   try {
     const addLiquidityParams = [
-      new Address("CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC").toScVal(), //TOKEN_0 Address
-      new Address("CCC6BBR7WFW72VJULVQUY2QYSBFWFOBMFVZFGPSF4DVMM2LMME63QEPE").toScVal(), //TOKEN_1 Address
-      nativeToScVal(1000000000, {type: "i128"}), //Amount_0 
-      nativeToScVal(102710000000, {type: "i128"}), //Amount_1 
+      new Address("CAPCD5BA3VYK4YWTXUBBXKXXIETXU2GGZZIQ4KDFI4WWTVZHV6OBIUNO").toScVal(), //TOKEN_0 Address
+      new Address("CCKW6SMINDG6TUWJROIZ535EW2ZUJQEDGSKNIK3FBK26PAMBZDVK2BZA").toScVal(), //TOKEN_1 Address
+      nativeToScVal(10000000000, {type: "i128"}), //Amount_0 
+      nativeToScVal(6243764045, {type: "i128"}), //Amount_1 
       new Address(loadedConfig.admin.publicKey()).toScVal(), //from account address
       nativeToScVal(getCurrentTimePlusOneHour(), { type: "u64" }), //deadline
     ]

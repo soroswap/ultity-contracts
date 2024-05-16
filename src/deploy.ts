@@ -1,5 +1,5 @@
 import { AddressBook } from '../utils/address_book.js';
-import { airdropAccount, deployContract, installContract} from '../utils/contract.js';
+import { airdropAccount, deployContract, installContract } from '../utils/contract.js';
 import { config } from '../utils/env_config.js';
 
 export async function deployContracts(addressBook: AddressBook, contracts_to_deploy: Array<string>) {
