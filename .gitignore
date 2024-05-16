@@ -1,2 +1,6 @@
 */target
 */test_snapshots
+.env
+node_modules
+dist
+.soroban

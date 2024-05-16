@@ -60,7 +60,7 @@ pub trait AddLiquidityTimelockTrait {
         token_b: Address,
         amount_a: i128,
         amount_b: i128,
-        to: Address,
+        from: Address,
         deadline: u64,
     ) -> Result<(i128, i128, i128), ContractError>;
     

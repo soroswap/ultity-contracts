@@ -2,11 +2,8 @@
 extern crate std;
 use soroban_sdk::{
     Env, 
-    vec,
-    Vec,
     BytesN, 
     Address, 
-    String,
     testutils::{
         Address as _,
         Ledger,
@@ -14,7 +11,7 @@ use soroban_sdk::{
 };
 // Token Contract
 pub mod token {
-    soroban_sdk::contractimport!(file = "/contracts/token/target/wasm32-unknown-unknown/release/soroban_token_contract.wasm");
+    soroban_sdk::contractimport!(file = "./soroban_token_contract.optimized.wasm");
     pub type TokenClient<'a> = Client<'a>;
 }
 use token::TokenClient;
@@ -25,7 +22,7 @@ pub fn create_token_contract<'a>(e: &Env, admin: & Address) -> TokenClient<'a> {
 
 // Pair Contract
 pub mod pair {
-    soroban_sdk::contractimport!(file = "/contracts/pair/target/wasm32-unknown-unknown/release/soroswap_pair.wasm");
+    soroban_sdk::contractimport!(file = "./soroswap_pair.optimized.wasm");
    pub type SoroswapPairClient<'a> = Client<'a>;
 }
 use pair::SoroswapPairClient;
@@ -33,14 +30,14 @@ use pair::SoroswapPairClient;
 
 fn pair_contract_wasm(e: &Env) -> BytesN<32> {
     soroban_sdk::contractimport!(
-        file = "/contracts/pair/target/wasm32-unknown-unknown/release/soroswap_pair.wasm"
+        file = "./soroswap_pair.optimized.wasm"
     );
     e.deployer().upload_contract_wasm(WASM)
 }
 
 // SoroswapFactory Contract
 pub mod factory {
-    soroban_sdk::contractimport!(file = "/contracts/factory/target/wasm32-unknown-unknown/release/soroswap_factory.wasm");
+    soroban_sdk::contractimport!(file = "./soroswap_factory.optimized.wasm");
     pub type SoroswapFactoryClient<'a> = Client<'a>;
 }
 use factory::SoroswapFactoryClient;
@@ -55,7 +52,7 @@ fn create_soroswap_factory<'a>(e: & Env, setter: & Address) -> SoroswapFactoryCl
 
 // SoroswapRouter Contract
 pub mod router {
-    soroban_sdk::contractimport!(file = "/contracts/router/target/wasm32-unknown-unknown/release/soroswap_router.optimized.wasm");
+    soroban_sdk::contractimport!(file = "./soroswap_router.optimized.wasm");
     pub type SoroswapRouterClient<'a> = Client<'a>;
 }
 use router::SoroswapRouterClient;

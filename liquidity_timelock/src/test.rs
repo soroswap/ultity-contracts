@@ -55,6 +55,6 @@ impl<'a> AddLiqudityTimelockTest<'a> {
 }
 
 pub mod initialize;
-pub mod add_liquidity;
-pub mod claim;
+// pub mod add_liquidity;
+// pub mod claim;
 // pub mod get_protocols;

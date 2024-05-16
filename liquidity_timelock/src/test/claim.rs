@@ -1,7 +1,7 @@
 use soroban_sdk::{Address, testutils::Address as _};
 
 use crate::error::ContractError;
-use crate::test::{AddLiqudityTimelockTest};
+use crate::test::AddLiqudityTimelockTest;
 
 #[test]
 fn claim_test() {

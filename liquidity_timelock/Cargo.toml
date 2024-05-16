@@ -1,5 +1,5 @@
 [package]
-name = "soroswap-proxy"
+name = "liquidity-timelock"
 version = "0.1.0"
 edition = "2021"
 description = "Soroswap-Proxy is a smart contract on the Soroban platform, tailored for use with the Soroswap-Aggregator. It facilitates efficient transaction routing through the Soroswap protocol."
