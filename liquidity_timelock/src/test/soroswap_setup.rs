@@ -20,13 +20,6 @@ pub fn create_token_contract<'a>(e: &Env, admin: & Address) -> TokenClient<'a> {
     TokenClient::new(&e, &e.register_stellar_asset_contract(admin.clone()))
 }
 
-// Pair Contract
-pub mod pair {
-    soroban_sdk::contractimport!(file = "./soroswap_pair.optimized.wasm");
-   pub type SoroswapPairClient<'a> = Client<'a>;
-}
-use pair::SoroswapPairClient;
-
 
 fn pair_contract_wasm(e: &Env) -> BytesN<32> {
     soroban_sdk::contractimport!(
@@ -90,7 +83,7 @@ impl<'a> SoroswapTest<'a> {
 
         let mut token_0 = create_token_contract(&env, &admin);
         let mut token_1 = create_token_contract(&env, &admin);
-        let mut token_2 = create_token_contract(&env, &admin);
+        let token_2 = create_token_contract(&env, &admin);
         if &token_1.address < &token_0.address {
             std::mem::swap(&mut token_0, &mut token_1);
         }
@@ -137,7 +130,7 @@ impl<'a> SoroswapTest<'a> {
             &desired_deadline//     deadline: u64,
         );
 
-        let (added_token_2, added_token_3, added_liquidity_2) = router_contract.add_liquidity(
+        let (_added_token_2, _added_token_3, _added_liquidity_2) = router_contract.add_liquidity(
             &token_1.address, //     token_a: Address,
             &token_2.address, //     token_b: Address,
             &amount_1, //     amount_a_desired: i128,

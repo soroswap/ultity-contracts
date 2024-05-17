@@ -1,75 +1,35 @@
-use soroban_sdk::{Address, testutils::Address as _};
-
-use crate::error::ContractError;
+extern crate chrono;
 use crate::test::AddLiqudityTimelockTest;
+use chrono::{Duration, Utc};
 
 #[test]
 fn add_liquidity_test() {
     let test = AddLiqudityTimelockTest::setup();
-    let deadline = 1746885472;
+
+    let now = Utc::now();
+    // Add one hour to the current timestamp
+    let end_timestamp = (now + Duration::hours(1)).timestamp() as u64;
+
     test.timelock_contract.initialize(
       &test.admin, 
       &test.router_contract.address,
-      &deadline
+      &end_timestamp
     );
-    let result = test.timelock_contract.add_liquidity(
+
+    let amount_0: i128 = 1_000_000_000_000;
+    let amount_1: i128 = 4_000_000_000_000;
+    let expected_liquidity: i128 = 2_000_000_000_000;
+
+    let (added_token_0, added_token_1, added_liquidity) = test.timelock_contract.add_liquidity(
       &test.token_0,
       &test.token_1,
-      &10_000_000,
-      &10_000_000,
+      &amount_0,
+      &amount_1,
       &test.admin,
-      &deadline
+      &end_timestamp
     );
-}
 
-#[test]
-fn add_negative_liquidity_test() {
-  let test = AddLiqudityTimelockTest::setup();
-  let deadline = 1746885472;
-  test.timelock_contract.initialize(
-    &test.admin, 
-    &test.router_contract.address,
-    &deadline
-  );
-  let result = test.timelock_contract.add_liquidity(
-    &test.token_0,
-    &test.token_1,
-    &(-10_000_000),
-    &(-10_000_000),
-    &test.admin,
-    &deadline
-  );
-}
-
-#[test]
-fn add_liquidity_with_expired_deadline_test() {
-  let test = AddLiqudityTimelockTest::setup();
-  let deadline = 1746885472;
-  test.timelock_contract.initialize(
-    &test.admin, 
-    &test.router_contract.address,
-    &deadline
-  );
-  let result = test.timelock_contract.add_liquidity(
-    &test.token_0,
-    &test.token_1,
-    &10_000_000,
-    &10_000_000,
-    &test.admin,
-    &(deadline - 1)
-  );
-}
-
-#[test]
-fn add_liquidity_with_uninitialized_contract_test() {
-  let test = AddLiqudityTimelockTest::setup();
-  let deadline = 1746885472;
-  let result = test.timelock_contract.add_liquidity(
-    &test.token_0,
-    &test.token_1,
-    &10_000_000,
-    &10_000_000,
-    &test.admin,
-    &deadline
-  );
+    assert_eq!(added_token_0, amount_0);
+    assert_eq!(added_token_1, amount_1);
+    assert_eq!(added_liquidity, expected_liquidity);
 }

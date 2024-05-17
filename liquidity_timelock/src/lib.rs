@@ -110,16 +110,15 @@ impl AddLiquidityTimelockTrait for AddLiquidityTimelock {
         from.require_auth();
         ensure_deadline(&e, deadline)?;
 
-        let current_contract = &e.current_contract_address();
-
         // Should transfer tokens from the user to the contract
-        TokenClient::new(&e, &token_a).transfer(&from, &current_contract, &amount_a);
-        TokenClient::new(&e, &token_b).transfer(&from, &current_contract, &amount_b);
+        TokenClient::new(&e, &token_a).transfer(&from, &e.current_contract_address(), &amount_a);
+        TokenClient::new(&e, &token_b).transfer(&from, &e.current_contract_address(), &amount_b);
 
         // Should execute add_liquidity on router with to as this contract address
         let soroswap_router_address = get_router_address(&e);
         let soroswap_router_client = SoroswapRouterClient::new(&e, &soroswap_router_address);
 
+        e.current_contract_address().require_auth();
         let result = soroswap_router_client.add_liquidity(
             &token_a,
             &token_b,
@@ -127,7 +126,7 @@ impl AddLiquidityTimelockTrait for AddLiquidityTimelock {
             &amount_b,
             &0,
             &0,
-            &current_contract,
+            &e.current_contract_address(),
             &deadline,
         );
 
