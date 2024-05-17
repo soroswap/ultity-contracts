@@ -103,16 +103,17 @@ export async function invokeCustomContract(
   contractId: string,
   method: string,
   params: xdr.ScVal[],
-  source: Keypair
+  source: Keypair,
+  sim?: boolean
 ) {
-  console.log("Invoking contract: ", contractId, " with method: ", method);
+  // console.log("Invoking contract: ", contractId, " with method: ", method);
   const contractInstance = new Contract(contractId);
 
   const contractOperation = contractInstance.call(method, ...params);
   return await invoke(
     contractOperation,
     source,
-    false,
+    sim ?? false,
   );  
 }
 
@@ -126,7 +127,7 @@ export async function deployStellarAsset(asset: Asset, source: Keypair) {
     })
   );
   const contractId = StrKey.encodeContract(hash(preimage.toXDR()));
-  console.log('🚀 « deployed Stellar Asset:', contractId);
+  // console.log('🚀 « deployed Stellar Asset:', contractId);
 
   const deployFunction = xdr.HostFunction.hostFunctionTypeCreateContract(
     new xdr.CreateContractArgs({
@@ -150,7 +151,7 @@ export async function bumpContractInstance(
   source: Keypair
 ) {
   const address = Address.fromString(addressBook.getContractId(contractKey));
-  console.log('bumping contract instance: ', address.toString());
+  // console.log('bumping contract instance: ', address.toString());
   const contractInstanceXDR = xdr.LedgerKey.contractData(
     new xdr.LedgerKeyContractData({
       contract: address.toScAddress(),
@@ -183,7 +184,7 @@ export async function bumpContractInstance(
 }
 
 export async function bumpContractCode(wasmKey: string, addressBook: AddressBook, source: Keypair) {
-  console.log('bumping contract code: ', wasmKey);
+  // console.log('bumping contract code: ', wasmKey);
   const wasmHash = Buffer.from(addressBook.getWasmHash(wasmKey), 'hex');
   const contractCodeXDR = xdr.LedgerKey.contractCode(
     new xdr.LedgerKeyContractCode({

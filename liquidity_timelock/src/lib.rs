@@ -19,7 +19,6 @@ use storage::{
     set_admin,
     get_admin,
     set_router_address, 
-    has_router_address,
     get_router_address,
     set_end_timestamp,
     get_end_timestamp, 
@@ -148,8 +147,10 @@ impl AddLiquidityTimelockTrait for AddLiquidityTimelock {
             let lp_balance = TokenClient::new(&e, &pair_address).balance(&current_contract);
 
             TokenClient::new(&e, &pair_address).transfer(&current_contract, &admin, &lp_balance);
-        }    
-        Ok(())
+            Ok(())
+        } else {
+            Err(ContractError::NeedToWait)
+        }
     }
 
     fn get_admin(e: &Env) -> Result<Address, ContractError> {

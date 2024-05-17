@@ -9,5 +9,6 @@ pub enum ContractError {
     NegativeNotAllowed = 403,
     ProtocolAddressNotFound = 404,
     DeadlineExpired = 405,
+    NeedToWait = 406,
 }
 
