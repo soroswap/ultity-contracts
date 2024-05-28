@@ -27,6 +27,8 @@ fn claim_test() {
     &test.token_1,
     &amount_0,
     &amount_1,
+    &0,
+    &0,
     &test.admin,
     &end_timestamp
   );

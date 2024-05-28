@@ -59,6 +59,8 @@ pub trait AddLiquidityTimelockTrait {
         token_b: Address,
         amount_a: i128,
         amount_b: i128,
+        amount_a_min: i128,
+        amount_b_min: i128,
         from: Address,
         deadline: u64,
     ) -> Result<(i128, i128, i128), ContractError>;
@@ -99,6 +101,8 @@ impl AddLiquidityTimelockTrait for AddLiquidityTimelock {
         token_b: Address,
         amount_a: i128,
         amount_b: i128,
+        amount_a_min: i128,
+        amount_b_min: i128,
         from: Address,
         deadline: u64,
     ) -> Result<(i128, i128, i128), ContractError> {
@@ -113,18 +117,19 @@ impl AddLiquidityTimelockTrait for AddLiquidityTimelock {
         TokenClient::new(&e, &token_a).transfer(&from, &e.current_contract_address(), &amount_a);
         TokenClient::new(&e, &token_b).transfer(&from, &e.current_contract_address(), &amount_b);
 
+        e.current_contract_address().require_auth();
+
         // Should execute add_liquidity on router with to as this contract address
         let soroswap_router_address = get_router_address(&e);
         let soroswap_router_client = SoroswapRouterClient::new(&e, &soroswap_router_address);
 
-        e.current_contract_address().require_auth();
         let result = soroswap_router_client.add_liquidity(
             &token_a,
             &token_b,
             &amount_a,
             &amount_b,
-            &0,
-            &0,
+            &amount_a_min,
+            &amount_b_min,
             &e.current_contract_address(),
             &deadline,
         );
