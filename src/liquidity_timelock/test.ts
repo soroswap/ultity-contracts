@@ -132,35 +132,93 @@ export async function liquidityTimelock(
     console.log("🚀 « error:", error);
   }
 
-  // console.log('-------------------------------------------------------');
-  // console.log('Testing Claim Liquidity Contract');
-  // console.log('-------------------------------------------------------');
-  // try {
-  //   const claimParams = [
-  //     new Address("CAEHRFL6HROIYFQK62ATJVRYEMLATWXVUYOBWCR5T7MFJB23BK56QD5J").toScVal(), //THIS IS THE PAIR ADDRESS
-  //   ]
+  console.log("-------------------------------------------------------");
+  console.log("Testing Claim Liquidity Contract");
+  console.log("-------------------------------------------------------");
+  try {
+    const claimParams = [
+      new Address(
+        "CAEHRFL6HROIYFQK62ATJVRYEMLATWXVUYOBWCR5T7MFJB23BK56QD5J"
+      ).toScVal(), //THIS IS THE PAIR ADDRESS
+    ];
 
-  //   const result = await invokeCustomContract(addressBook.getContractId(contractKey), "claim", claimParams, loadedConfig.admin)
-  //   console.log('🚀 « result:', result);
-  // } catch (error) {
-  //   console.log('🚀 « error:', error);
-  // }
+    const result = await invokeCustomContract(
+      addressBook.getContractId(contractKey),
+      "claim",
+      claimParams,
+      loadedConfig.admin
+    );
+    console.log("🚀 « result:", result);
+  } catch (error) {
+    console.log("🚀 « error:", error);
+  }
 
-  // console.log('-------------------------------------------------------');
-  // console.log('ending Balances');
-  // console.log('-------------------------------------------------------');
-  // xtarUserBalance = await invokeCustomContract("CAPCD5BA3VYK4YWTXUBBXKXXIETXU2GGZZIQ4KDFI4WWTVZHV6OBIUNO", "balance", [new Address(loadedConfig.admin.publicKey()).toScVal()], loadedConfig.admin, true)
-  // console.log('XTAR USER BALANCE:', scValToNative(xtarUserBalance.result.retval));
-  // xtarContractBalance = await invokeCustomContract("CAPCD5BA3VYK4YWTXUBBXKXXIETXU2GGZZIQ4KDFI4WWTVZHV6OBIUNO", "balance", [new Address(addressBook.getContractId(contractKey)).toScVal()], loadedConfig.admin, true)
-  // console.log('XTAR CONTRACT BALANCE:', scValToNative(xtarContractBalance.result.retval));
-  // usdcUserBalance = await invokeCustomContract("CCKW6SMINDG6TUWJROIZ535EW2ZUJQEDGSKNIK3FBK26PAMBZDVK2BZA", "balance", [new Address(loadedConfig.admin.publicKey()).toScVal()], loadedConfig.admin, true)
-  // console.log('USDC USER BALANCE:', scValToNative(usdcUserBalance.result.retval));
-  // usdcContractBalance = await invokeCustomContract("CCKW6SMINDG6TUWJROIZ535EW2ZUJQEDGSKNIK3FBK26PAMBZDVK2BZA", "balance", [new Address(addressBook.getContractId(contractKey)).toScVal()], loadedConfig.admin, true)
-  // console.log('USDC CONTRACT BALANCE:', scValToNative(usdcContractBalance.result.retval));
-  // lpUserBalance = await invokeCustomContract("CAEHRFL6HROIYFQK62ATJVRYEMLATWXVUYOBWCR5T7MFJB23BK56QD5J", "balance", [new Address(loadedConfig.admin.publicKey()).toScVal()], loadedConfig.admin, true)
-  // console.log('LP USER BALANCE:', scValToNative(lpUserBalance.result.retval));
-  // lpContractBalance = await invokeCustomContract("CAEHRFL6HROIYFQK62ATJVRYEMLATWXVUYOBWCR5T7MFJB23BK56QD5J", "balance", [new Address(addressBook.getContractId(contractKey)).toScVal()], loadedConfig.admin, true)
-  // console.log('LP CONTRACT BALANCE:', scValToNative(lpContractBalance.result.retval));
+  console.log("-------------------------------------------------------");
+  console.log("ending Balances");
+  console.log("-------------------------------------------------------");
+  xtarUserBalance = await invokeCustomContract(
+    "CAPCD5BA3VYK4YWTXUBBXKXXIETXU2GGZZIQ4KDFI4WWTVZHV6OBIUNO",
+    "balance",
+    [new Address(loadedConfig.admin.publicKey()).toScVal()],
+    loadedConfig.admin,
+    true
+  );
+  console.log(
+    "XTAR USER BALANCE:",
+    scValToNative(xtarUserBalance.result.retval)
+  );
+  xtarContractBalance = await invokeCustomContract(
+    "CAPCD5BA3VYK4YWTXUBBXKXXIETXU2GGZZIQ4KDFI4WWTVZHV6OBIUNO",
+    "balance",
+    [new Address(addressBook.getContractId(contractKey)).toScVal()],
+    loadedConfig.admin,
+    true
+  );
+  console.log(
+    "XTAR CONTRACT BALANCE:",
+    scValToNative(xtarContractBalance.result.retval)
+  );
+  usdcUserBalance = await invokeCustomContract(
+    "CCKW6SMINDG6TUWJROIZ535EW2ZUJQEDGSKNIK3FBK26PAMBZDVK2BZA",
+    "balance",
+    [new Address(loadedConfig.admin.publicKey()).toScVal()],
+    loadedConfig.admin,
+    true
+  );
+  console.log(
+    "USDC USER BALANCE:",
+    scValToNative(usdcUserBalance.result.retval)
+  );
+  usdcContractBalance = await invokeCustomContract(
+    "CCKW6SMINDG6TUWJROIZ535EW2ZUJQEDGSKNIK3FBK26PAMBZDVK2BZA",
+    "balance",
+    [new Address(addressBook.getContractId(contractKey)).toScVal()],
+    loadedConfig.admin,
+    true
+  );
+  console.log(
+    "USDC CONTRACT BALANCE:",
+    scValToNative(usdcContractBalance.result.retval)
+  );
+  lpUserBalance = await invokeCustomContract(
+    "CAEHRFL6HROIYFQK62ATJVRYEMLATWXVUYOBWCR5T7MFJB23BK56QD5J",
+    "balance",
+    [new Address(loadedConfig.admin.publicKey()).toScVal()],
+    loadedConfig.admin,
+    true
+  );
+  console.log("LP USER BALANCE:", scValToNative(lpUserBalance.result.retval));
+  lpContractBalance = await invokeCustomContract(
+    "CAEHRFL6HROIYFQK62ATJVRYEMLATWXVUYOBWCR5T7MFJB23BK56QD5J",
+    "balance",
+    [new Address(addressBook.getContractId(contractKey)).toScVal()],
+    loadedConfig.admin,
+    true
+  );
+  console.log(
+    "LP CONTRACT BALANCE:",
+    scValToNative(lpContractBalance.result.retval)
+  );
 }
 
 const network = process.argv[2];
