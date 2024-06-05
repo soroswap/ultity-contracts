@@ -32,6 +32,7 @@ export async function liquidityTimelock(
     );
     console.log("🚀 « result:", result);
   } catch (error) {
+    console.log("🚀 « error:", error);
     console.log("Already initialized:");
   }
 
@@ -149,6 +150,7 @@ export async function liquidityTimelock(
       loadedConfig.admin
     );
     console.log("🚀 « result:", result);
+    console.log("🚀 « result:", scValToNative(result.returnValue));
   } catch (error) {
     console.log("🚀 « error:", error);
   }

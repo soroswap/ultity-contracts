@@ -50,6 +50,12 @@ fn check_initialized(e: &Env) -> Result<(), ContractError> {
     }
 }
 
+fn check_time_bound(env: &Env, end_timestamp: u64) -> bool {
+    let ledger_timestamp = env.ledger().timestamp();
+
+    ledger_timestamp >= end_timestamp
+}
+
 pub trait AddLiquidityTimelockTrait {
     fn initialize(e: Env, admin: Address, router_address: Address, end_timestamp: u64) -> Result<(), ContractError>;
 
@@ -85,6 +91,11 @@ impl AddLiquidityTimelockTrait for AddLiquidityTimelock {
         if is_initialized(&e) {
             return Err(ContractError::AlreadyInitialized);
         }
+
+        if end_timestamp >= 10_u64.pow(10) {
+            return Err(ContractError::WrongTimestamp);
+        }
+
         set_admin(&e, admin.clone());
         set_end_timestamp(&e, end_timestamp.clone());
         set_router_address(&e, router_address.clone());
@@ -171,21 +182,20 @@ impl AddLiquidityTimelockTrait for AddLiquidityTimelock {
         check_initialized(&e)?;
         let admin = get_admin(&e);
         admin.require_auth();
-        let ledger_timestamp = e.ledger().timestamp();
         let end_timestamp = get_end_timestamp(&e);
-        
+
+        if !check_time_bound(&e, end_timestamp) {
+            return Err(ContractError::NeedToWait);
+        }
+
         // Should get LP tokens balance and transfer them to the admin wallet
         let current_contract = &e.current_contract_address();
         let token_client = TokenClient::new(&e, &pair_address);
-        
-        if  ledger_timestamp >= end_timestamp {
-            // We recieve the pair address by args
-            let lp_balance = token_client.balance(&current_contract);
-            token_client.transfer(&current_contract, &admin, &lp_balance);
-            Ok(())
-        } else {
-            Err(ContractError::NeedToWait)
-        }
+
+        let lp_balance = token_client.balance(&current_contract);
+        token_client.transfer(&current_contract, &admin, &lp_balance);
+
+        Ok(())
     }
 
     fn get_admin(e: &Env) -> Result<Address, ContractError> {
