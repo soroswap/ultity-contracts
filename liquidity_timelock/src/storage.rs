@@ -1,4 +1,5 @@
-use soroban_sdk::{contracttype, Env, Address};
+use crate::error::{CombinedLiquidityTimelockError, LiquidityTimelockError};
+use soroban_sdk::{contracttype, Address, Env};
 
 #[derive(Clone)]
 #[contracttype]
@@ -31,27 +32,33 @@ pub fn is_initialized(e: &Env) -> bool {
 pub fn set_admin(e: &Env, admin: Address) {
     e.storage().instance().set(&DataKey::Admin, &admin);
 }
-
-pub fn get_admin(e: &Env) -> Address {
-    e.storage().instance().get(&DataKey::Admin).unwrap()
+pub fn get_admin(e: &Env) -> Result<Address, CombinedLiquidityTimelockError> {
+    e.storage()
+        .instance()
+        .get(&DataKey::Admin)
+        .ok_or(LiquidityTimelockError::NotInitialized.into())
 }
 
 pub fn set_soroswap_router_address(e: &Env, address: Address) {
-    e.storage().instance().set(&DataKey::RouterAddress, &address);
+    e.storage()
+        .instance()
+        .set(&DataKey::RouterAddress, &address);
 }
 
-pub fn has_router_address(e: &Env) -> bool {
-    e.storage().instance().has(&DataKey::RouterAddress)
-}
-
-pub fn get_router_address(e: &Env) -> Address {
-    e.storage().instance().get(&DataKey::RouterAddress).unwrap()
+pub fn get_router_address(e: &Env) -> Result<Address, CombinedLiquidityTimelockError> {
+    e.storage()
+        .instance()
+        .get(&DataKey::RouterAddress)
+        .ok_or(LiquidityTimelockError::NotInitialized.into())
 }
 
 pub fn set_end_timestamp(e: &Env, timestamp: u64) {
     e.storage().instance().set(&DataKey::EndTime, &timestamp);
 }
 
-pub fn get_end_timestamp(e: &Env) -> u64 {
-    e.storage().instance().get(&DataKey::EndTime).unwrap()
+pub fn get_end_timestamp(e: &Env) -> Result<u64, CombinedLiquidityTimelockError> {
+    e.storage()
+        .instance()
+        .get(&DataKey::EndTime)
+        .ok_or(LiquidityTimelockError::NotInitialized.into())
 }

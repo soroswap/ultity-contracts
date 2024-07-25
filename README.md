@@ -24,6 +24,12 @@ make build
 make test
 ```
 
+Audit With Scout
+```bash
+cd /workspace/liquidity_timelock
+cargo scout-audit
+```
+
 ### Testnet
 
 to test on testnet using the soroswap deployment do this

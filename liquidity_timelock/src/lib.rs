@@ -1,18 +1,17 @@
 #![no_std]
-use soroban_sdk::{auth::{ContractContext, InvokerContractAuthEntry, SubContractInvocation}, Symbol, contract, contractimpl, Address, Env, vec, Vec, Val, IntoVal};
-use soroban_sdk::token::Client as TokenClient;
-use soroswap_library::{SoroswapLibraryError as OtherSoroswapLibraryError};
+use soroban_sdk::{
+    auth::{ContractContext, InvokerContractAuthEntry, SubContractInvocation},
+    token::Client as TokenClient,
+    contract, contractimpl, vec, Address, Env, IntoVal, Symbol, Val, Vec,
+};
+use soroswap_library::SoroswapLibraryError;
 
-
-mod event;
-mod storage;
-mod error;
-mod test;
-
-soroban_sdk::contractimport!(
-    file = "./soroswap_contracts/soroswap_router.optimized.wasm"
-);
-pub type SoroswapRouterClient<'a> = Client<'a>;
+// SoroswapRouter Contract
+mod router {
+    soroban_sdk::contractimport!(file = "./soroswap_contracts/soroswap_router.optimized.wasm");
+    pub type SoroswapRouterClient<'a> = Client<'a>;
+}
+use router::SoroswapRouterClient;
 
 // SoroswapFactory Contract
 mod factory {
@@ -21,20 +20,20 @@ mod factory {
 }
 use factory::SoroswapFactoryClient;
 
-use storage::{
-    extend_instance_ttl, 
-    set_initialized, 
-    is_initialized, 
-    set_admin,
-    get_admin,
-    set_soroswap_router_address, 
-    get_router_address,
-    set_end_timestamp,
-    get_end_timestamp, 
-};
-pub use error::{LiquidityTimelockError, CombinedLiquidityTimelockErrror};
 
-pub fn check_nonnegative_amount(amount: i128) -> Result<(), CombinedLiquidityTimelockErrror> {
+mod error;
+mod event;
+mod storage;
+mod test;
+
+pub use error::{CombinedLiquidityTimelockError, LiquidityTimelockError};
+use storage::{
+    extend_instance_ttl, get_admin, get_end_timestamp, get_router_address, is_initialized,
+    set_admin, set_end_timestamp, set_initialized, set_soroswap_router_address,
+};
+
+// HELPER FUNCTIONS
+pub fn check_nonnegative_amount(amount: i128) -> Result<(), CombinedLiquidityTimelockError> {
     if amount < 0 {
         Err(LiquidityTimelockError::NegativeNotAllowed.into())
     } else {
@@ -42,7 +41,7 @@ pub fn check_nonnegative_amount(amount: i128) -> Result<(), CombinedLiquidityTim
     }
 }
 
-fn ensure_deadline(e: &Env, timestamp: u64) -> Result<(), CombinedLiquidityTimelockErrror> {
+fn ensure_deadline(e: &Env, timestamp: u64) -> Result<(), CombinedLiquidityTimelockError> {
     let ledger_timestamp = e.ledger().timestamp();
     if ledger_timestamp >= timestamp {
         Err(LiquidityTimelockError::DeadlineExpired.into())
@@ -51,7 +50,7 @@ fn ensure_deadline(e: &Env, timestamp: u64) -> Result<(), CombinedLiquidityTimel
     }
 }
 
-fn check_initialized(e: &Env) -> Result<(), CombinedLiquidityTimelockErrror> {
+fn check_initialized(e: &Env) -> Result<(), CombinedLiquidityTimelockError> {
     if is_initialized(e) {
         Ok(())
     } else {
@@ -59,12 +58,16 @@ fn check_initialized(e: &Env) -> Result<(), CombinedLiquidityTimelockErrror> {
     }
 }
 
-fn check_time_bound(env: &Env, end_timestamp: u64) -> bool {
+fn check_timelock_bond(env: &Env) -> Result<(), CombinedLiquidityTimelockError> {
+    let end_timestamp = get_end_timestamp(&env)?;
     let ledger_timestamp = env.ledger().timestamp();
 
-    ledger_timestamp >= end_timestamp
+    if ledger_timestamp <= end_timestamp {
+        // we still need to wait
+        return Err(LiquidityTimelockError::NeedToWait.into());
+    }
+    Ok(())
 }
-
 
 /*
     NOTE: We need to know exactely the amount of tokens that will be transferred to the Liquidity Pool
@@ -99,7 +102,7 @@ fn add_liquidity_amounts(
     amount_b_desired: i128,
     amount_a_min: i128,
     amount_b_min: i128,
-) -> Result<(i128, i128), CombinedLiquidityTimelockErrror> {
+) -> Result<(i128, i128), CombinedLiquidityTimelockError> {
     // checks if the pair exists; otherwise, creates the pair
     let factory_client = SoroswapFactoryClient::new(&e, &factory);
     if !factory_client.pair_exists(&token_a, &token_b) {
@@ -132,7 +135,8 @@ fn add_liquidity_amounts(
         }
         // If not, we can try with the amount b desired
         else {
-            let amount_a_optimal = soroswap_library::quote(amount_b_desired, reserve_b, reserve_a).map_err(OtherSoroswapLibraryError::from)?;
+            let amount_a_optimal = soroswap_library::quote(amount_b_desired, reserve_b, reserve_a)
+                .map_err(SoroswapLibraryError::from)?;
 
             // This should happen anyway. Because if we were not able to fulfill with our amount_b_desired for our amount_a_desired
             // It is to expect that the amount_a_optimal for that lower amount_b_desired to be lower than the amount_a_desired
@@ -147,8 +151,57 @@ fn add_liquidity_amounts(
 }
 
 pub trait AddLiquidityTimelockTrait {
-    fn initialize(e: Env, admin: Address, router_address: Address, end_timestamp: u64) -> Result<(), CombinedLiquidityTimelockErrror>;
+    /// Initializes the AddLiquidityTimelock contract.
+    ///
+    /// # Arguments
+    ///
+    /// * `e` - The environment context.
+    /// * `admin` - The address of the admin.
+    /// * `router_address` - The address of the Soroswap router.
+    /// * `end_timestamp` - The end timestamp for the timelock.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<(), CombinedLiquidityTimelockError>` - Returns Ok(()) if the initialization is successful,
+    ///   otherwise returns an error indicating the failure reason.
+    fn initialize(
+        e: Env,
+        admin: Address,
+        router_address: Address,
+        end_timestamp: u64,
+    ) -> Result<(), CombinedLiquidityTimelockError>;
 
+    /// Adds liquidity to a liquidity pool in the Soroswap protocol.
+    ///
+    /// This function adds liquidity by transferring the specified amounts of tokens to the liquidity pool.
+    /// It ensures that the contract is initialized, the amounts are non-negative, and the deadline is not exceeded.
+    /// The function also authorizes the transfer of tokens, calculates the exact amounts of tokens to be used,
+    /// and handles any remaining balances. An event is emitted upon successful addition of liquidity.
+    /// 
+    /// This functions adds liquidity on behalf of the caller to a Soroswap.Finance liquidity pool, however the 
+    /// liquidity pool tokens are hold by the current contract until they are claimed
+    ///
+    /// # Arguments
+    ///
+    /// * `e` - The contract environment (`Env`) in which the contract is executing.
+    /// * `token_a` - The address of the first token to add liquidity for.
+    /// * `token_b` - The address of the second token to add liquidity for.
+    /// * `amount_a_desired` - The desired amount of the first token to add.
+    /// * `amount_b_desired` - The desired amount of the second token to add.
+    /// * `amount_a_min` - The minimum required amount of the first token to add.
+    /// * `amount_b_min` - The minimum required amount of the second token to add.
+    /// * `from` - The address where the liquidity tokens will be taken from.
+    /// * `deadline` - The deadline for executing the operation.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<(i128, i128, i128), CombinedLiquidityTimelockError>` - Returns a tuple containing the amounts of token A,
+    ///   token B, and the liquidity added, or an error if the operation fails.
+    ///
+    /// # Errors
+    ///
+    /// * `CombinedLiquidityTimelockError` - If the contract is not initialized, the amounts are negative,
+    ///   the deadline is exceeded, or other validation errors occur.
     fn add_liquidity(
         e: Env,
         token_a: Address,
@@ -159,26 +212,39 @@ pub trait AddLiquidityTimelockTrait {
         amount_b_min: i128,
         from: Address,
         deadline: u64,
-    ) -> Result<(i128, i128, i128), CombinedLiquidityTimelockErrror>;
-    
-    fn claim(e: Env, pair_address:Address) -> Result<(), CombinedLiquidityTimelockErrror>;
+    ) -> Result<(i128, i128, i128), CombinedLiquidityTimelockError>;
 
-    fn get_admin(e: &Env) -> Result<Address, CombinedLiquidityTimelockErrror>;
+    fn claim(e: Env, pair_address: Address) -> Result<(), CombinedLiquidityTimelockError>;
+
+    fn get_admin(e: &Env) -> Result<Address, CombinedLiquidityTimelockError>;
+
+    fn get_release_time(e: &Env) -> Result<u64, CombinedLiquidityTimelockError>;
 }
-
 
 #[contract]
 struct AddLiquidityTimelock;
 
 #[contractimpl]
 impl AddLiquidityTimelockTrait for AddLiquidityTimelock {
-    
+    /// Initializes the AddLiquidityTimelock contract.
+    ///
+    /// # Arguments
+    ///
+    /// * `e` - The environment context.
+    /// * `admin` - The address of the admin.
+    /// * `router_address` - The address of the Soroswap router.
+    /// * `end_timestamp` - The end timestamp for the timelock.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<(), CombinedLiquidityTimelockError>` - Returns Ok(()) if the initialization is successful,
+    ///   otherwise returns an error indicating the failure reason.
     fn initialize(
         e: Env,
         admin: Address,
         router_address: Address,
         end_timestamp: u64,
-    ) -> Result<(), CombinedLiquidityTimelockErrror> {
+    ) -> Result<(), CombinedLiquidityTimelockError> {
         if is_initialized(&e) {
             return Err(LiquidityTimelockError::AlreadyInitialized.into());
         }
@@ -192,12 +258,23 @@ impl AddLiquidityTimelockTrait for AddLiquidityTimelock {
         set_soroswap_router_address(&e, router_address.clone());
         set_initialized(&e);
 
-        event::initialized(&e, true, end_timestamp);
+        event::initialized(&e, admin, router_address, end_timestamp);
         extend_instance_ttl(&e);
         Ok(())
     }
 
+    /// Adds liquidity to a liquidity pool in the Soroswap protocol.
+    ///
+    /// This function adds liquidity by transferring the specified amounts of tokens to the liquidity pool.
+    /// It ensures that the contract is initialized, the amounts are non-negative, and the deadline is not exceeded.
+    /// The function also authorizes the transfer of tokens, calculates the exact amounts of tokens to be used,
+    /// and handles any remaining balances. An event is emitted upon successful addition of liquidity.
+    ///
+    /// This functions adds liquidity on behalf of the caller to a Soroswap.Finance liquidity pool, however the 
+    /// liquidity pool tokens are hold by the current contract until they are claimed
+    /// 
     /// # Arguments
+    ///
     /// * `e` - The contract environment (`Env`) in which the contract is executing.
     /// * `token_a` - The address of the first token to add liquidity for.
     /// * `token_b` - The address of the second token to add liquidity for.
@@ -207,6 +284,16 @@ impl AddLiquidityTimelockTrait for AddLiquidityTimelock {
     /// * `amount_b_min` - The minimum required amount of the second token to add.
     /// * `from` - The address where the liquidity tokens will be taken from.
     /// * `deadline` - The deadline for executing the operation.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<(i128, i128, i128), CombinedLiquidityTimelockError>` - Returns a tuple containing the amounts of token A,
+    ///   token B, and the liquidity added, or an error if the operation fails.
+    ///
+    /// # Errors
+    ///
+    /// * `CombinedLiquidityTimelockError` - If the contract is not initialized, the amounts are negative,
+    ///   the deadline is exceeded, or other validation errors occur.
     fn add_liquidity(
         e: Env,
         token_a: Address,
@@ -217,7 +304,7 @@ impl AddLiquidityTimelockTrait for AddLiquidityTimelock {
         amount_b_min: i128,
         from: Address,
         deadline: u64,
-    ) -> Result<(i128, i128, i128), CombinedLiquidityTimelockErrror> {
+    ) -> Result<(i128, i128, i128), CombinedLiquidityTimelockError> {
         check_initialized(&e)?;
         check_nonnegative_amount(amount_a_desired)?;
         check_nonnegative_amount(amount_b_desired)?;
@@ -227,7 +314,7 @@ impl AddLiquidityTimelockTrait for AddLiquidityTimelock {
         from.require_auth();
         ensure_deadline(&e, deadline)?;
 
-        let soroswap_router_address = get_router_address(&e);
+        let soroswap_router_address = get_router_address(&e)?;
         let soroswap_router_client = SoroswapRouterClient::new(&e, &soroswap_router_address);
 
         let factory = soroswap_router_client.get_factory();
@@ -244,8 +331,10 @@ impl AddLiquidityTimelockTrait for AddLiquidityTimelock {
         )?;
 
         // Should transfer tokens from the user to the contract
-        TokenClient::new(&e, &token_a).transfer(&from, &e.current_contract_address(), &amount_a);
-        TokenClient::new(&e, &token_b).transfer(&from, &e.current_contract_address(), &amount_b);
+        let token_a_client = TokenClient::new(&e, &token_a);
+        let token_b_client = TokenClient::new(&e, &token_b);
+        token_a_client.transfer(&from, &e.current_contract_address(), &amount_a);
+        token_b_client.transfer(&from, &e.current_contract_address(), &amount_b);
 
         let soroswap_pair_address = soroswap_router_client.router_pair_for(&token_a, &token_b);
 
@@ -261,62 +350,83 @@ impl AddLiquidityTimelockTrait for AddLiquidityTimelock {
 
         e.authorize_as_current_contract(vec![
             &e,
-            InvokerContractAuthEntry::Contract( SubContractInvocation {
+            InvokerContractAuthEntry::Contract(SubContractInvocation {
                 context: ContractContext {
                     contract: token_a.clone(),
                     fn_name: Symbol::new(&e, "transfer"),
                     args: transfer_args_a.clone(),
                 },
-                sub_invocations: vec![&e]
+                sub_invocations: vec![&e],
             }),
-            InvokerContractAuthEntry::Contract( SubContractInvocation {
+            InvokerContractAuthEntry::Contract(SubContractInvocation {
                 context: ContractContext {
                     contract: token_b.clone(),
                     fn_name: Symbol::new(&e, "transfer"),
                     args: transfer_args_b.clone(),
                 },
-                sub_invocations: vec![&e]
-            })
+                sub_invocations: vec![&e],
+            }),
         ]);
 
-        let result = soroswap_router_client.add_liquidity(
+        // here amunt_a and amunt_b should get exactely the same value as the amount_a_desired and amount_b_desired
+        let (amount_a, amount_b, liquidity) = soroswap_router_client.add_liquidity(
             &token_a,
             &token_b,
             &amount_a, // `amount_a_desired` - The desired amount of the first token to add.
             &amount_b, // `amount_b_desired` - The desired amount of the second token to add.
             &amount_a, // `amount_a_min` - The minimum required amount of the first token to add.
-            &amount_b,  // `amount_b_min` - The minimum required amount of the second token to add.
+            &amount_b, // `amount_b_min` - The minimum required amount of the second token to add.
             &e.current_contract_address(),
             &deadline,
         );
 
-        Ok(result)
-    }
-
-    fn claim(e: Env, pair_address: Address ) -> Result<(), CombinedLiquidityTimelockErrror> {
-        check_initialized(&e)?;
-        let admin = get_admin(&e);
-        admin.require_auth();
-        let end_timestamp = get_end_timestamp(&e);
-
-        if !check_time_bound(&e, end_timestamp) {
-            return Err(LiquidityTimelockError::NeedToWait.into());
+        // If for any reason the contract still has some token_a and token_b, it does return it to the user
+        // Due to the calculation this should not be the case
+        let token_a_balance = token_a_client.balance(&e.current_contract_address());
+        let token_b_balance = token_a_client.balance(&e.current_contract_address());
+        if token_a_balance > 0 {
+            token_a_client.transfer(&e.current_contract_address(), &from, &token_a_balance);
+        }
+        if token_b_balance > 0 {
+            token_b_client.transfer(&e.current_contract_address(), &from, &token_b_balance);
         }
 
+        let pair: Address =
+            soroswap_library::pair_for(e.clone(), factory, token_a.clone(), token_b.clone())
+                .map_err(SoroswapLibraryError::from)?;
+
+        event::add_liquidity(
+            &e, token_a, token_b, pair, amount_a, amount_b, liquidity, from,
+        );
+
+        Ok((amount_a, amount_b, liquidity))
+    }
+
+    fn claim(e: Env, pair_address: Address) -> Result<(), CombinedLiquidityTimelockError> {
+        check_timelock_bond(&e)?;
+
+        let admin = get_admin(&e)?;
+        admin.require_auth();
+
         // Should get LP tokens balance and transfer them to the admin wallet
+        // So then the admin can decide how much liquidity to withdraw.
         let current_contract = &e.current_contract_address();
         let token_client = TokenClient::new(&e, &pair_address);
 
         let lp_balance = token_client.balance(&current_contract);
         token_client.transfer(&current_contract, &admin, &lp_balance);
 
+        // emit claim event
+        event::claim(&e, pair_address, lp_balance, admin);
         Ok(())
     }
 
-    fn get_admin(e: &Env) -> Result<Address, CombinedLiquidityTimelockErrror> {
-        check_initialized(&e)?;
-        let admin = get_admin(&e);
+    fn get_admin(e: &Env) -> Result<Address, CombinedLiquidityTimelockError> {
+        let admin = get_admin(&e)?;
         Ok(admin)
     }
 
+    fn get_release_time(e: &Env) -> Result<u64, CombinedLiquidityTimelockError> {
+        Ok(get_end_timestamp(&e)?)
+    }
 }
