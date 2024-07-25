@@ -70,10 +70,9 @@ pub struct SoroswapTest<'a> {
     pub factory_contract: SoroswapFactoryClient<'a>,
     pub token_0: TokenClient<'a>,
     pub token_1: TokenClient<'a>,
-    pub token_2: TokenClient<'a>,
+    // pub token_2: TokenClient<'a>,
     pub user: Address,
     pub admin: Address,
-    pub pair_address: Address
 }
 
 impl<'a> SoroswapTest<'a> {
@@ -172,17 +171,16 @@ impl<'a> SoroswapTest<'a> {
         assert_eq!(token_1.balance(&user), 2_000_000_000_000_000_000);
         assert_eq!(token_2.balance(&user), 5_000_000_000_000_000_000);
 
-        let pair_address = factory_contract.get_pair(&token_0.address, &token_1.address);
+        // let pair_address = factory_contract.get_pair(&token_0.address, &token_1.address);
         SoroswapTest {
             env,
             router_contract,
             factory_contract,
             token_0,
             token_1,
-            token_2,
+            // token_2,
             user,
             admin,
-            pair_address
         }
     }
 }
