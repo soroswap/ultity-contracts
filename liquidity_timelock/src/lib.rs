@@ -151,7 +151,11 @@ fn add_liquidity_amounts(
 }
 
 pub trait AddLiquidityTimelockTrait {
-    fn initialize(e: Env, admin: Address, router_address: Address, end_timestamp: u64) -> Result<(), CombinedLiquidityTimelockError>;
+    fn initialize(
+        e: Env, 
+        admin: Address, 
+        router_address: Address, 
+        end_timestamp: u64) -> Result<(), CombinedLiquidityTimelockError>;
 
     fn add_liquidity(
         e: Env,
@@ -198,7 +202,7 @@ impl AddLiquidityTimelockTrait for AddLiquidityTimelock {
         set_soroswap_router_address(&e, router_address.clone());
         set_initialized(&e);
 
-        event::initialized(&e, true, end_timestamp);
+        event::initialized(&e, admin, router_address, end_timestamp);
         extend_instance_ttl(&e);
         Ok(())
     }
