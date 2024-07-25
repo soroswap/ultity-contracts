@@ -168,6 +168,8 @@ pub trait AddLiquidityTimelockTrait {
     fn claim(e: Env, pair_address:Address) -> Result<(), CombinedLiquidityTimelockError>;
 
     fn get_admin(e: &Env) -> Result<Address, CombinedLiquidityTimelockError>;
+    
+    fn get_release_time(e: &Env) -> Result<u64, CombinedLiquidityTimelockError>;
 }
 
 
@@ -330,6 +332,10 @@ impl AddLiquidityTimelockTrait for AddLiquidityTimelock {
     fn get_admin(e: &Env) -> Result<Address, CombinedLiquidityTimelockError> {
         let admin = get_admin(&e)?;
         Ok(admin)
+    }
+
+    fn get_release_time(e: &Env) -> Result<u64, CombinedLiquidityTimelockError> {
+        Ok(get_end_timestamp(&e)?)
     }
 
 }
