@@ -1,4 +1,4 @@
-use soroban_sdk::{contracttype, Env, Address, String};
+use soroban_sdk::{contracttype, Env, Address};
 
 #[derive(Clone)]
 #[contracttype]
@@ -36,7 +36,7 @@ pub fn get_admin(e: &Env) -> Address {
     e.storage().instance().get(&DataKey::Admin).unwrap()
 }
 
-pub fn set_router_address(e: &Env, address: Address) {
+pub fn set_soroswap_router_address(e: &Env, address: Address) {
     e.storage().instance().set(&DataKey::RouterAddress, &address);
 }
 
