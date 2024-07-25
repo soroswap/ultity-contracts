@@ -32,9 +32,9 @@ use storage::{
     set_end_timestamp,
     get_end_timestamp, 
 };
-pub use error::{LiquidityTimelockError, CombinedLiquidityTimelockErrror};
+pub use error::{LiquidityTimelockError, CombinedLiquidityTimelockError};
 
-pub fn check_nonnegative_amount(amount: i128) -> Result<(), CombinedLiquidityTimelockErrror> {
+pub fn check_nonnegative_amount(amount: i128) -> Result<(), CombinedLiquidityTimelockError> {
     if amount < 0 {
         Err(LiquidityTimelockError::NegativeNotAllowed.into())
     } else {
@@ -42,7 +42,7 @@ pub fn check_nonnegative_amount(amount: i128) -> Result<(), CombinedLiquidityTim
     }
 }
 
-fn ensure_deadline(e: &Env, timestamp: u64) -> Result<(), CombinedLiquidityTimelockErrror> {
+fn ensure_deadline(e: &Env, timestamp: u64) -> Result<(), CombinedLiquidityTimelockError> {
     let ledger_timestamp = e.ledger().timestamp();
     if ledger_timestamp >= timestamp {
         Err(LiquidityTimelockError::DeadlineExpired.into())
@@ -51,7 +51,7 @@ fn ensure_deadline(e: &Env, timestamp: u64) -> Result<(), CombinedLiquidityTimel
     }
 }
 
-fn check_initialized(e: &Env) -> Result<(), CombinedLiquidityTimelockErrror> {
+fn check_initialized(e: &Env) -> Result<(), CombinedLiquidityTimelockError> {
     if is_initialized(e) {
         Ok(())
     } else {
@@ -59,8 +59,8 @@ fn check_initialized(e: &Env) -> Result<(), CombinedLiquidityTimelockErrror> {
     }
 }
 
-fn check_timelock_bond(env: &Env) -> Result<(), CombinedLiquidityTimelockErrror> {
-    let end_timestamp = get_end_timestamp(&env);
+fn check_timelock_bond(env: &Env) -> Result<(), CombinedLiquidityTimelockError> {
+    let end_timestamp = get_end_timestamp(&env)?;
     let ledger_timestamp = env.ledger().timestamp();
 
     if ledger_timestamp <= end_timestamp { // we still need to wait
@@ -103,7 +103,7 @@ fn add_liquidity_amounts(
     amount_b_desired: i128,
     amount_a_min: i128,
     amount_b_min: i128,
-) -> Result<(i128, i128), CombinedLiquidityTimelockErrror> {
+) -> Result<(i128, i128), CombinedLiquidityTimelockError> {
     // checks if the pair exists; otherwise, creates the pair
     let factory_client = SoroswapFactoryClient::new(&e, &factory);
     if !factory_client.pair_exists(&token_a, &token_b) {
@@ -151,7 +151,7 @@ fn add_liquidity_amounts(
 }
 
 pub trait AddLiquidityTimelockTrait {
-    fn initialize(e: Env, admin: Address, router_address: Address, end_timestamp: u64) -> Result<(), CombinedLiquidityTimelockErrror>;
+    fn initialize(e: Env, admin: Address, router_address: Address, end_timestamp: u64) -> Result<(), CombinedLiquidityTimelockError>;
 
     fn add_liquidity(
         e: Env,
@@ -163,11 +163,11 @@ pub trait AddLiquidityTimelockTrait {
         amount_b_min: i128,
         from: Address,
         deadline: u64,
-    ) -> Result<(i128, i128, i128), CombinedLiquidityTimelockErrror>;
+    ) -> Result<(i128, i128, i128), CombinedLiquidityTimelockError>;
     
-    fn claim(e: Env, pair_address:Address) -> Result<(), CombinedLiquidityTimelockErrror>;
+    fn claim(e: Env, pair_address:Address) -> Result<(), CombinedLiquidityTimelockError>;
 
-    fn get_admin(e: &Env) -> Result<Address, CombinedLiquidityTimelockErrror>;
+    fn get_admin(e: &Env) -> Result<Address, CombinedLiquidityTimelockError>;
 }
 
 
@@ -182,7 +182,7 @@ impl AddLiquidityTimelockTrait for AddLiquidityTimelock {
         admin: Address,
         router_address: Address,
         end_timestamp: u64,
-    ) -> Result<(), CombinedLiquidityTimelockErrror> {
+    ) -> Result<(), CombinedLiquidityTimelockError> {
         if is_initialized(&e) {
             return Err(LiquidityTimelockError::AlreadyInitialized.into());
         }
@@ -221,7 +221,7 @@ impl AddLiquidityTimelockTrait for AddLiquidityTimelock {
         amount_b_min: i128,
         from: Address,
         deadline: u64,
-    ) -> Result<(i128, i128, i128), CombinedLiquidityTimelockErrror> {
+    ) -> Result<(i128, i128, i128), CombinedLiquidityTimelockError> {
         check_initialized(&e)?;
         check_nonnegative_amount(amount_a_desired)?;
         check_nonnegative_amount(amount_b_desired)?;
@@ -231,7 +231,7 @@ impl AddLiquidityTimelockTrait for AddLiquidityTimelock {
         from.require_auth();
         ensure_deadline(&e, deadline)?;
 
-        let soroswap_router_address = get_router_address(&e);
+        let soroswap_router_address = get_router_address(&e)?;
         let soroswap_router_client = SoroswapRouterClient::new(&e, &soroswap_router_address);
 
         let factory = soroswap_router_client.get_factory();
@@ -310,11 +310,10 @@ impl AddLiquidityTimelockTrait for AddLiquidityTimelock {
         Ok(result)
     }
 
-    fn claim(e: Env, pair_address: Address ) -> Result<(), CombinedLiquidityTimelockErrror> {
-        check_initialized(&e)?;
+    fn claim(e: Env, pair_address: Address ) -> Result<(), CombinedLiquidityTimelockError> {
         check_timelock_bond(&e)?;
 
-        let admin = get_admin(&e);
+        let admin = get_admin(&e)?;
         admin.require_auth();
 
         // Should get LP tokens balance and transfer them to the admin wallet
@@ -328,9 +327,8 @@ impl AddLiquidityTimelockTrait for AddLiquidityTimelock {
         Ok(())
     }
 
-    fn get_admin(e: &Env) -> Result<Address, CombinedLiquidityTimelockErrror> {
-        check_initialized(&e)?;
-        let admin = get_admin(&e);
+    fn get_admin(e: &Env) -> Result<Address, CombinedLiquidityTimelockError> {
+        let admin = get_admin(&e)?;
         Ok(admin)
     }
 

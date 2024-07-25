@@ -1,4 +1,4 @@
-use crate::error::ContractError;
+use crate::error::CombinedLiquidityTimelockError;
 use crate::test::AddLiqudityTimelockTest;
 
 #[test]
@@ -20,7 +20,7 @@ fn test_get_admin_not_yet_initialized() {
     let test = AddLiqudityTimelockTest::setup();
     let result = test.timelock_contract.try_get_admin();
 
-    assert_eq!(result, Err(Ok(ContractError::NotInitialized)));
+    assert_eq!(result, Err(Ok(CombinedLiquidityTimelockError::TimelockNotInitialized)));
 }
 
 #[test]
@@ -41,6 +41,6 @@ fn test_initialize_twice() {
 
     assert_eq!(
         result_second_init,
-        (Err(Ok(ContractError::AlreadyInitialized)))
+        (Err(Ok(CombinedLiquidityTimelockError::TimelockAlreadyInitialized)))
     );
 }
