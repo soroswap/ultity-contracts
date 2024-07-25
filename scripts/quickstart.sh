@@ -2,6 +2,7 @@
 
 previewHash=$(jq -r '.previewHash' configs.json)
 quickstartHash=$(jq -r '.quickstartHash' configs.json)
+protocolVersion=$(jq -r '.protocolVersion' configs.json)
 
 previewVersion=$(echo "$previewHash" | cut -d'@' -f1)
 echo $previewVersion
@@ -36,37 +37,39 @@ echo "1. Creating docker soroban network"
 echo "  "
 echo "  "
 
-echo "2. Searching for a previous soroban-preview docker container"
-containerID=$(docker ps --filter=`name=soroban-preview-${previewVersion}` --all --quiet)
+previewContainerName="soroban-preview-${previewVersion}"
+echo "2. Searching for a previous ${previewContainerName} container"
+containerID=$(docker ps --filter=`name=${previewContainerName}` --all --quiet)
 if [[ ${containerID} ]]; then
-    echo "Start removing soroban-preview-${previewVersion}  container."
-    docker rm --force soroban-preview-${previewVersion}
-    echo "Finished removing soroban-preview-${previewVersion} container."
+    echo "Start removing ${previewContainerName}  container."
+    docker rm --force ${previewContainerName}
+    echo "Finished removing ${previewContainerName} container."
 else
-    echo "No previous soroban-preview-${previewVersion} container was found"
+    echo "No previous ${previewContainerName} container was found"
 fi
 echo "  "
 echo "  "
 
-echo "3. Searching for a previous stellar container"
-containerID=$(docker ps --filter=`name=stellar` --all --quiet)
+stellarContainerName="stellar"
+echo "3. Searching for a previous ${stellarContainerName} container"
+containerID=$(docker ps --filter=`name=${stellarContainerName}` --all --quiet)
 if [[ ${containerID} ]]; then
-    echo "Start removing stellar container."
-    docker rm --force stellar
-    echo "Finished removing stellar container."
+    echo "Start removing ${stellarContainerName} container."
+    docker rm --force ${stellarContainerName}
+    echo "Finished removing ${stellarContainerName} container."
 else
-    echo "No previous stellar container was found"
+    echo "No previous ${stellarContainerName} container was found"
 fi
 echo "  "
 echo "  "
 
-echo "4. Run a soroban-preview-${previewVersion} container"
+echo "4. Run a ${previewContainerName} container"
 
 currentDir=$(pwd)
 docker run -dti \
   --volume ${currentDir}:/workspace \
-  --name soroban-preview-${previewVersion} \
-  -p 8001:8000 \
+  --name ${previewContainerName} \
+  -p 8002:8000 \
   --ipc=host \
   --network soroban-network \
   esteblock/soroban-preview:${previewHash}
@@ -74,15 +77,15 @@ docker run -dti \
 echo "  "
 echo "  "
 
-echo "5. Run a stellar quickstart container"
-# Run the stellar quickstart image
+echo "5. Run a ${stellarContainerName} quickstart container"
+# Run the ${stellarContainerName} quickstart image
 docker run --rm -ti \
-  --name stellar \
+  --name ${stellarContainerName} \
   --network soroban-network \
   -p 8000:8000 \
   stellar/quickstart:${quickstartHash} \
   $ARGS \
   --enable-soroban-rpc \
-  --protocol-version 20 \
+  --protocol-version ${protocolVersion} \
   --enable-soroban-diagnostic-events \
   "$@" # Pass through args from the CLI
