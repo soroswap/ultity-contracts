@@ -1,6 +1,5 @@
 use soroban_sdk::{self, contracterror};
-use soroswap_library::{SoroswapLibraryError};
-
+use soroswap_library::SoroswapLibraryError;
 
 #[contracterror]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
@@ -43,12 +42,22 @@ pub enum CombinedLiquidityTimelockError {
 impl From<SoroswapLibraryError> for CombinedLiquidityTimelockError {
     fn from(err: SoroswapLibraryError) -> Self {
         match err {
-            SoroswapLibraryError::InsufficientAmount => CombinedLiquidityTimelockError::LibraryInsufficientAmount,
-            SoroswapLibraryError::InsufficientLiquidity => CombinedLiquidityTimelockError::LibraryInsufficientLiquidity,
-            SoroswapLibraryError::InsufficientInputAmount => CombinedLiquidityTimelockError::LibraryInsufficientInputAmount,
-            SoroswapLibraryError::InsufficientOutputAmount => CombinedLiquidityTimelockError::LibraryInsufficientOutputAmount,
+            SoroswapLibraryError::InsufficientAmount => {
+                CombinedLiquidityTimelockError::LibraryInsufficientAmount
+            }
+            SoroswapLibraryError::InsufficientLiquidity => {
+                CombinedLiquidityTimelockError::LibraryInsufficientLiquidity
+            }
+            SoroswapLibraryError::InsufficientInputAmount => {
+                CombinedLiquidityTimelockError::LibraryInsufficientInputAmount
+            }
+            SoroswapLibraryError::InsufficientOutputAmount => {
+                CombinedLiquidityTimelockError::LibraryInsufficientOutputAmount
+            }
             SoroswapLibraryError::InvalidPath => CombinedLiquidityTimelockError::LibraryInvalidPath,
-            SoroswapLibraryError::SortIdenticalTokens => CombinedLiquidityTimelockError::LibrarySortIdenticalTokens,
+            SoroswapLibraryError::SortIdenticalTokens => {
+                CombinedLiquidityTimelockError::LibrarySortIdenticalTokens
+            }
         }
     }
 }
@@ -56,15 +65,33 @@ impl From<SoroswapLibraryError> for CombinedLiquidityTimelockError {
 impl From<LiquidityTimelockError> for CombinedLiquidityTimelockError {
     fn from(err: LiquidityTimelockError) -> Self {
         match err {
-            LiquidityTimelockError::NotInitialized => CombinedLiquidityTimelockError::TimelockNotInitialized,
-            LiquidityTimelockError::AlreadyInitialized => CombinedLiquidityTimelockError::TimelockAlreadyInitialized,
-            LiquidityTimelockError::NegativeNotAllowed => CombinedLiquidityTimelockError::TimelockNegativeNotAllowed,
-            LiquidityTimelockError::ProtocolAddressNotFound => CombinedLiquidityTimelockError::TimelockDeadlineExpired,
-            LiquidityTimelockError::DeadlineExpired => CombinedLiquidityTimelockError::TimelockDeadlineExpired,
-            LiquidityTimelockError::NeedToWait => CombinedLiquidityTimelockError::TimelockNeedToWait,
-            LiquidityTimelockError::WrongTimestamp => CombinedLiquidityTimelockError::TimelockWrongTimestamp,
-            LiquidityTimelockError::InsufficientBAmount => CombinedLiquidityTimelockError::TimelockInsufficientBAmount,
-            LiquidityTimelockError::InsufficientAAmount => CombinedLiquidityTimelockError::TimelockInsufficientAAmount,
+            LiquidityTimelockError::NotInitialized => {
+                CombinedLiquidityTimelockError::TimelockNotInitialized
+            }
+            LiquidityTimelockError::AlreadyInitialized => {
+                CombinedLiquidityTimelockError::TimelockAlreadyInitialized
+            }
+            LiquidityTimelockError::NegativeNotAllowed => {
+                CombinedLiquidityTimelockError::TimelockNegativeNotAllowed
+            }
+            LiquidityTimelockError::ProtocolAddressNotFound => {
+                CombinedLiquidityTimelockError::TimelockDeadlineExpired
+            }
+            LiquidityTimelockError::DeadlineExpired => {
+                CombinedLiquidityTimelockError::TimelockDeadlineExpired
+            }
+            LiquidityTimelockError::NeedToWait => {
+                CombinedLiquidityTimelockError::TimelockNeedToWait
+            }
+            LiquidityTimelockError::WrongTimestamp => {
+                CombinedLiquidityTimelockError::TimelockWrongTimestamp
+            }
+            LiquidityTimelockError::InsufficientBAmount => {
+                CombinedLiquidityTimelockError::TimelockInsufficientBAmount
+            }
+            LiquidityTimelockError::InsufficientAAmount => {
+                CombinedLiquidityTimelockError::TimelockInsufficientAAmount
+            }
         }
     }
 }

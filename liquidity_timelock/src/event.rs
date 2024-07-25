@@ -1,5 +1,5 @@
 //! Definition of the Events used in the contract
-use soroban_sdk::{contracttype, symbol_short, Env, Address};
+use soroban_sdk::{contracttype, symbol_short, Address, Env};
 
 // INITIALIZED
 #[contracttype]
@@ -7,26 +7,21 @@ use soroban_sdk::{contracttype, symbol_short, Env, Address};
 pub struct InitializedEvent {
     pub admin: Address,
     pub router_address: Address,
-    pub end_timestamp: u64
+    pub end_timestamp: u64,
 }
 
-pub(crate) fn initialized(
-    e: &Env,
-    admin: Address,
-    router_address: Address,
-    end_timestamp: u64) {
-    
+pub(crate) fn initialized(e: &Env, admin: Address, router_address: Address, end_timestamp: u64) {
     let event: InitializedEvent = InitializedEvent {
         admin,
         router_address,
         end_timestamp,
-
     };
-    e.events().publish(("LiquidityTimeLock", symbol_short!("init")), event);
+    e.events()
+        .publish(("LiquidityTimeLock", symbol_short!("init")), event);
 }
 
 // ADD LIQUIDITY EVENT
-#[contracttype] 
+#[contracttype]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct AddLiquidityEvent {
     pub token_a: Address,
@@ -35,13 +30,13 @@ pub struct AddLiquidityEvent {
     pub amount_a: i128,
     pub amount_b: i128,
     pub liquidity: i128,
-    pub to: Address
+    pub to: Address,
 }
 
 /// Publishes an `AddLiquidityEvent` to the event stream.
-/// 
+///
 /// # Arguments
-/// 
+///
 /// * `e` - An instance of the `Env` struct.
 /// * `token_a` - The address of the first token in the liquidity pair.
 /// * `token_b` - The address of the second token in the liquidity pair.
@@ -70,7 +65,8 @@ pub(crate) fn add_liquidity(
         to,
     };
 
-    e.events().publish(("LiquidityTimeLock", symbol_short!("add")), event);
+    e.events()
+        .publish(("LiquidityTimeLock", symbol_short!("add")), event);
 }
 
 // create an event for claim
@@ -79,20 +75,12 @@ pub(crate) fn add_liquidity(
 pub struct ClaimEvent {
     pub pair: Address,
     pub amount: i128,
-    pub to: Address
+    pub to: Address,
 }
 // create a function to publish the claim event
-pub(crate) fn claim(
-    e: &Env,
-    pair: Address,
-    amount: i128,
-    to: Address
-) {
-    let event = ClaimEvent {
-        pair,
-        amount,
-        to
-    };
+pub(crate) fn claim(e: &Env, pair: Address, amount: i128, to: Address) {
+    let event = ClaimEvent { pair, amount, to };
 
-    e.events().publish(("LiquidityTimeLock", symbol_short!("claim")), event);
+    e.events()
+        .publish(("LiquidityTimeLock", symbol_short!("claim")), event);
 }

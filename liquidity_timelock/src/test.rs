@@ -2,18 +2,13 @@
 extern crate std;
 pub mod soroswap_setup;
 
-use soroban_sdk::{
-    Env, 
-    Address, 
-};
 use crate::{AddLiquidityTimelock, AddLiquidityTimelockClient};
-use soroswap_setup::{SoroswapTest, router, factory, TokenClient};
-use router::SoroswapRouterClient;
 use factory::SoroswapFactoryClient;
+use router::SoroswapRouterClient;
+use soroban_sdk::{Address, Env};
+use soroswap_setup::{factory, router, SoroswapTest, TokenClient};
 
 pub use soroswap_setup::SoroswapPairClient;
-
-
 
 // SoroswapAggregatorProxy Contract
 fn create_add_liquidity_timelock<'a>(e: &Env) -> AddLiquidityTimelockClient<'a> {
@@ -35,7 +30,7 @@ pub struct AddLiqudityTimelockTest<'a> {
 impl<'a> AddLiqudityTimelockTest<'a> {
     fn setup() -> Self {
         let test = SoroswapTest::soroswap_setup();
-        
+
         let timelock_contract = create_add_liquidity_timelock(&test.env);
         let router_contract = test.router_contract;
 
@@ -53,8 +48,8 @@ impl<'a> AddLiqudityTimelockTest<'a> {
     }
 }
 
-pub mod initialize;
 pub mod add_liquidity;
 pub mod claim;
 pub mod events;
+pub mod initialize;
 // pub mod get_protocols;

@@ -1,16 +1,13 @@
 use soroban_sdk::{symbol_short, testutils::Events, vec, IntoVal};
 
-use crate::test::{
-    AddLiqudityTimelockTest
-};
 use crate::test::add_liquidity::add_liquidity;
+use crate::test::AddLiqudityTimelockTest;
 use soroban_sdk::testutils::Ledger;
 
 use crate::event::{
-    InitializedEvent,
     AddLiquidityEvent,
-    ClaimEvent
-    //
+    ClaimEvent, //
+    InitializedEvent,
 };
 
 #[test]
@@ -19,11 +16,11 @@ fn initialized_event() {
     let desired_release_time = 1746885472;
 
     test.timelock_contract.initialize(
-        &test.admin, 
+        &test.admin,
         &test.router_contract.address,
-        &desired_release_time
+        &desired_release_time,
     );
-    
+
     let initialized_event = test.env.events().all().last().unwrap();
 
     let expected_initialized_event: InitializedEvent = InitializedEvent {
@@ -44,10 +41,10 @@ fn initialized_event() {
         ]
     );
 
-    let false_initialized_event:InitializedEvent = InitializedEvent {
+    let false_initialized_event: InitializedEvent = InitializedEvent {
         admin: test.admin.clone(),
         router_address: test.router_contract.address.clone(),
-        end_timestamp: (desired_release_time+1),
+        end_timestamp: (desired_release_time + 1),
     };
     assert_ne!(
         vec![&test.env, initialized_event.clone()],
@@ -88,24 +85,22 @@ fn initialized_event() {
     );
 }
 
-
 #[test]
 fn add_liquidity_event() {
     let test = AddLiqudityTimelockTest::setup();
     let desired_release_time = 1746885472;
 
     test.timelock_contract.initialize(
-        &test.admin, 
+        &test.admin,
         &test.router_contract.address,
-        &desired_release_time
+        &desired_release_time,
     );
 
     let amount_0: i128 = 1_000_000_000_000;
     let amount_1: i128 = 4_000_000_000_000;
 
-    let (deposited_amount_0, 
-        deposited_amount_1, 
-        received_liquidity) =add_liquidity(&test, &amount_0, &amount_1);
+    let (deposited_amount_0, deposited_amount_1, received_liquidity) =
+        add_liquidity(&test, &amount_0, &amount_1);
 
     let add_liquidity_event = test.env.events().all().last().unwrap();
 
@@ -187,17 +182,16 @@ fn claim_event() {
     let desired_release_time = 1746885472;
 
     test.timelock_contract.initialize(
-        &test.admin, 
+        &test.admin,
         &test.router_contract.address,
-        &desired_release_time
+        &desired_release_time,
     );
 
     let amount_0: i128 = 1_000_000_000_000;
     let amount_1: i128 = 4_000_000_000_000;
 
-    let (_deposited_amount_0, 
-        _deposited_amount_1, 
-        received_liquidity) =add_liquidity(&test, &amount_0, &amount_1);
+    let (_deposited_amount_0, _deposited_amount_1, received_liquidity) =
+        add_liquidity(&test, &amount_0, &amount_1);
 
     let new_ledget_timestamp = desired_release_time + 1;
 
@@ -205,9 +199,7 @@ fn claim_event() {
         li.timestamp = new_ledget_timestamp;
     });
 
-    test.timelock_contract.claim(
-        &test.pair_address
-    );
+    test.timelock_contract.claim(&test.pair_address);
 
     let claim_event = test.env.events().all().last().unwrap();
 
