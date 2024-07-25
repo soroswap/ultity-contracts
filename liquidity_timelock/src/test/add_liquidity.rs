@@ -1,5 +1,5 @@
 extern crate chrono;
-use crate::test::AddLiqudityTimelockTest;
+use crate::test::{AddLiqudityTimelockTest, SoroswapPairClient};
 use crate::error::CombinedLiquidityTimelockError;
 
 use chrono::{Duration, Utc};
@@ -349,6 +349,9 @@ fn add_liquidity_test() {
     let amount_1: i128 = 4_000_000_000_000;
     let expected_liquidity: i128 = 2_000_000_000_000;
 
+    let initial_user_balance_0 = test.token_0.balance(&test.user);
+    let initial_user_balance_1 = test.token_1.balance(&test.user);
+
     let (added_token_0, added_token_1, added_liquidity) = test.timelock_contract.add_liquidity(
       &test.token_0.address,
       &test.token_1.address,
@@ -356,11 +359,24 @@ fn add_liquidity_test() {
       &amount_1,
       &0,
       &0,
-      &test.admin,
+      &test.user,
       &release_time
     );
 
     assert_eq!(added_token_0, amount_0);
     assert_eq!(added_token_1, amount_1);
     assert_eq!(added_liquidity, expected_liquidity);
+
+    assert_eq!(test.token_0.balance(&test.user), initial_user_balance_0.checked_sub(amount_0).unwrap());
+    assert_eq!(test.token_1.balance(&test.user), initial_user_balance_1.checked_sub(amount_1).unwrap());
+
+    // the contract does not hold any token...
+    assert_eq!(test.token_0.balance(&test.timelock_contract.address), 0);
+    assert_eq!(test.token_1.balance(&test.timelock_contract.address), 0);
+
+    // but the contract DOES holds the LP token
+    let pair_address = test.soroswap_factory_contract.get_pair(&test.token_0.address, &test.token_1.address);
+    let pair_client = SoroswapPairClient::new(&test.env, &pair_address);
+    assert_eq!(pair_client.balance(&test.timelock_contract.address), expected_liquidity);
+
 }

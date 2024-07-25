@@ -7,8 +7,13 @@ use soroban_sdk::{
     Address, 
 };
 use crate::{AddLiquidityTimelock, AddLiquidityTimelockClient};
-use soroswap_setup::{SoroswapTest, router, TokenClient};
+use soroswap_setup::{SoroswapTest, router, factory, TokenClient};
 use router::SoroswapRouterClient;
+use factory::SoroswapFactoryClient;
+
+pub use soroswap_setup::SoroswapPairClient;
+
+
 
 // SoroswapAggregatorProxy Contract
 fn create_add_liquidity_timelock<'a>(e: &Env) -> AddLiquidityTimelockClient<'a> {
@@ -19,6 +24,7 @@ pub struct AddLiqudityTimelockTest<'a> {
     env: Env,
     timelock_contract: AddLiquidityTimelockClient<'a>,
     router_contract: SoroswapRouterClient<'a>,
+    soroswap_factory_contract: SoroswapFactoryClient<'a>,
     admin: Address,
     token_0: TokenClient<'a>,
     token_1: TokenClient<'a>,
@@ -37,6 +43,7 @@ impl<'a> AddLiqudityTimelockTest<'a> {
             env: test.env,
             timelock_contract,
             router_contract,
+            soroswap_factory_contract: test.factory_contract,
             admin: test.admin,
             token_0: test.token_0,
             token_1: test.token_1,

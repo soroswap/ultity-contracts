@@ -28,6 +28,13 @@ fn pair_contract_wasm(e: &Env) -> BytesN<32> {
     e.deployer().upload_contract_wasm(WASM)
 }
 
+
+pub mod pair {
+    soroban_sdk::contractimport!(file = "./soroswap_contracts/soroswap_pair.optimized.wasm");
+    pub type SoroswapPairClient<'a> = Client<'a>;
+}
+pub use pair::SoroswapPairClient;
+
 // SoroswapFactory Contract
 pub mod factory {
     soroban_sdk::contractimport!(file = "./soroswap_contracts/soroswap_factory.optimized.wasm");
