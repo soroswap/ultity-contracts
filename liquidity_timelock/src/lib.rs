@@ -291,7 +291,8 @@ impl AddLiquidityTimelockTrait for AddLiquidityTimelock {
             })
         ]);
 
-        let result = soroswap_router_client.add_liquidity(
+        // here amunt_a and amunt_b should get exactely the same value as the amount_a_desired and amount_b_desired
+        let (amount_a, amount_b, liquidity) = soroswap_router_client.add_liquidity(
             &token_a,
             &token_b,
             &amount_a, // `amount_a_desired` - The desired amount of the first token to add.
@@ -313,7 +314,24 @@ impl AddLiquidityTimelockTrait for AddLiquidityTimelock {
             token_b_client.transfer(&e.current_contract_address(), &from, &token_b_balance);
         }
 
-        Ok(result)
+        let pair: Address = soroswap_library::pair_for(
+            e.clone(),
+            factory,
+            token_a.clone(),
+            token_b.clone(),
+        ).map_err(OtherSoroswapLibraryError::from)?;
+        
+        event::add_liquidity(
+            &e,
+            token_a,
+            token_b,
+            pair,
+            amount_a,
+            amount_b,
+            liquidity,
+            from);
+            
+        Ok((amount_a, amount_b, liquidity))
     }
 
     fn claim(e: Env, pair_address: Address ) -> Result<(), CombinedLiquidityTimelockError> {

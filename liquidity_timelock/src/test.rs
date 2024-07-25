@@ -28,6 +28,7 @@ pub struct AddLiqudityTimelockTest<'a> {
     admin: Address,
     token_0: TokenClient<'a>,
     token_1: TokenClient<'a>,
+    pair_address: Address,
     user: Address,
 }
 
@@ -46,6 +47,7 @@ impl<'a> AddLiqudityTimelockTest<'a> {
             admin: test.admin,
             token_0: test.token_0,
             token_1: test.token_1,
+            pair_address: test.pair_address,
             user: test.user,
         }
     }
