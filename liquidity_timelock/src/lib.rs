@@ -59,10 +59,14 @@ fn check_initialized(e: &Env) -> Result<(), CombinedLiquidityTimelockErrror> {
     }
 }
 
-fn check_time_bound(env: &Env, end_timestamp: u64) -> bool {
+fn check_timelock_bond(env: &Env) -> Result<(), CombinedLiquidityTimelockErrror> {
+    let end_timestamp = get_end_timestamp(&env);
     let ledger_timestamp = env.ledger().timestamp();
 
-    ledger_timestamp >= end_timestamp
+    if ledger_timestamp <= end_timestamp { // we still need to wait
+        return Err(LiquidityTimelockError::NeedToWait.into());
+    }
+    Ok(())
 }
 
 
@@ -244,8 +248,10 @@ impl AddLiquidityTimelockTrait for AddLiquidityTimelock {
         )?;
 
         // Should transfer tokens from the user to the contract
-        TokenClient::new(&e, &token_a).transfer(&from, &e.current_contract_address(), &amount_a);
-        TokenClient::new(&e, &token_b).transfer(&from, &e.current_contract_address(), &amount_b);
+        let token_a_client = TokenClient::new(&e, &token_a);
+        let token_b_client = TokenClient::new(&e, &token_b);
+        token_a_client.transfer(&from, &e.current_contract_address(), &amount_a);
+        token_b_client.transfer(&from, &e.current_contract_address(), &amount_b);
 
         let soroswap_pair_address = soroswap_router_client.router_pair_for(&token_a, &token_b);
 
@@ -290,20 +296,29 @@ impl AddLiquidityTimelockTrait for AddLiquidityTimelock {
             &deadline,
         );
 
+        // If for any reason the contract still has some token_a and token_b, it does return it to the user
+        // Due to the calculation this should not be the case
+        let token_a_balance = token_a_client.balance(&e.current_contract_address());
+        let token_b_balance = token_a_client.balance(&e.current_contract_address());
+        if token_a_balance > 0 {
+            token_a_client.transfer(&e.current_contract_address(), &from, &token_a_balance);
+        }
+        if token_b_balance > 0 {
+            token_b_client.transfer(&e.current_contract_address(), &from, &token_b_balance);
+        }
+
         Ok(result)
     }
 
     fn claim(e: Env, pair_address: Address ) -> Result<(), CombinedLiquidityTimelockErrror> {
         check_initialized(&e)?;
+        check_timelock_bond(&e)?;
+
         let admin = get_admin(&e);
         admin.require_auth();
-        let end_timestamp = get_end_timestamp(&e);
-
-        if !check_time_bound(&e, end_timestamp) {
-            return Err(LiquidityTimelockError::NeedToWait.into());
-        }
 
         // Should get LP tokens balance and transfer them to the admin wallet
+        // So then the admin can decide how much liquidity to withdraw.
         let current_contract = &e.current_contract_address();
         let token_client = TokenClient::new(&e, &pair_address);
 
