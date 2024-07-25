@@ -313,7 +313,7 @@ impl AddLiquidityTimelockTrait for AddLiquidityTimelock {
     }
 
     fn claim(e: Env, pair_address: Address ) -> Result<(), CombinedLiquidityTimelockError> {
-        check_timelock_bond(&e)?;
+        check_timelock_bond(&e)?; 
 
         let admin = get_admin(&e)?;
         admin.require_auth();
