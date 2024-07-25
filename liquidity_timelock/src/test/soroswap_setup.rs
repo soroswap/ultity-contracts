@@ -14,7 +14,7 @@ pub mod token {
     soroban_sdk::contractimport!(file = "./soroswap_contracts/soroban_token_contract.optimized.wasm");
     pub type TokenClient<'a> = Client<'a>;
 }
-use token::TokenClient;
+pub use token::TokenClient;
 
 pub fn create_token_contract<'a>(e: &Env, admin: & Address) -> TokenClient<'a> {
     TokenClient::new(&e, &e.register_stellar_asset_contract(admin.clone()))
