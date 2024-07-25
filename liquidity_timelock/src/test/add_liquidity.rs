@@ -352,6 +352,12 @@ fn add_liquidity_test() {
     let initial_user_balance_0 = test.token_0.balance(&test.user);
     let initial_user_balance_1 = test.token_1.balance(&test.user);
 
+    // but the contract DOES holds the LP token
+    let pair_address = test.soroswap_factory_contract.get_pair(&test.token_0.address, &test.token_1.address);
+    let pair_client = SoroswapPairClient::new(&test.env, &pair_address);
+
+    let initial_user_lp_token_balance = pair_client.balance(&test.user);
+
     let (added_token_0, added_token_1, added_liquidity) = test.timelock_contract.add_liquidity(
       &test.token_0.address,
       &test.token_1.address,
@@ -374,9 +380,9 @@ fn add_liquidity_test() {
     assert_eq!(test.token_0.balance(&test.timelock_contract.address), 0);
     assert_eq!(test.token_1.balance(&test.timelock_contract.address), 0);
 
-    // but the contract DOES holds the LP token
-    let pair_address = test.soroswap_factory_contract.get_pair(&test.token_0.address, &test.token_1.address);
-    let pair_client = SoroswapPairClient::new(&test.env, &pair_address);
+    
     assert_eq!(pair_client.balance(&test.timelock_contract.address), expected_liquidity);
 
+    // and the user does NOT hold any NEW amount of LP token
+    assert_eq!(pair_client.balance(&test.user), initial_user_lp_token_balance);
 }
