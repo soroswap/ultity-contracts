@@ -348,6 +348,8 @@ impl AddLiquidityTimelockTrait for AddLiquidityTimelock {
         let lp_balance = token_client.balance(&current_contract);
         token_client.transfer(&current_contract, &admin, &lp_balance);
 
+        // emit claim event
+        event::claim(&e, pair_address, lp_balance, admin);
         Ok(())
     }
 

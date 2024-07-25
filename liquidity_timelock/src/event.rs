@@ -72,3 +72,27 @@ pub(crate) fn add_liquidity(
 
     e.events().publish(("LiquidityTimeLock", symbol_short!("add")), event);
 }
+
+// create an event for claim
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ClaimEvent {
+    pub pair: Address,
+    pub amount: i128,
+    pub to: Address
+}
+// create a function to publish the claim event
+pub(crate) fn claim(
+    e: &Env,
+    pair: Address,
+    amount: i128,
+    to: Address
+) {
+    let event = ClaimEvent {
+        pair,
+        amount,
+        to
+    };
+
+    e.events().publish(("LiquidityTimeLock", symbol_short!("claim")), event);
+}
