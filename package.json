@@ -1,12 +1,11 @@
 {
   "name": "contract_management",
   "version": "1.0.0",
-  "description": "Contract Management for Soroban Dapp Boilerplate",
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "deploy": "yarn build && node dist/src/deploy.js",
-    "test": "yarn build && node dist/src/liquidity_timelock/test.js"
+    "deploy": "tsc && node dist/deploy.js",
+    "test": "tsc && node dist/liquidity_timelock/test.js"
   },
   "license": "MIT",
   "devDependencies": {

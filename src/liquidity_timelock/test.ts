@@ -1,18 +1,18 @@
 import { Address, nativeToScVal, scValToNative } from "@stellar/stellar-sdk";
-import { AddressBook } from "../../utils/address_book.js";
-import { invokeCustomContract } from "../../utils/contract.js";
-import { config } from "../../utils/env_config.js";
-import { getCurrentTimePlusOneHour } from "../../utils/tx.js";
+import { AddressBook } from "../utils/address_book.js";
+import { invokeCustomContract } from "../utils/contract.js";
+import { config } from "../utils/env_config.js";
+import { getCurrentTimePlusOneHour } from "../utils/tx.js";
 
 export async function liquidityTimelock(
   addressBook: AddressBook,
   contractKey: string
 ) {
-  let account = await loadedConfig.horizonRpc.loadAccount(
-    loadedConfig.admin.publicKey()
-  );
-  let balance = account.balances[0].balance;
-  console.log("Current Admin account balance:", balance);
+  // let account = await loadedConfig.horizonRpc.loadAccount(
+  //   loadedConfig.admin.publicKey()
+  // );
+  // let balance = account.balances[0].balance;
+  // console.log("Current Admin account balance:", balance);
   console.log("-------------------------------------------------------");
   console.log("Initialize Liquidity Timelock Contract");
   console.log("-------------------------------------------------------");
@@ -226,7 +226,7 @@ export async function liquidityTimelock(
 const network = process.argv[2];
 const contractKey = process.argv[3];
 const loadedConfig = config(network);
-const addressBook = AddressBook.loadFromFile(network, loadedConfig);
+const addressBook = AddressBook.loadFromFile(network);
 
 try {
   await liquidityTimelock(addressBook, contractKey);

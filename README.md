@@ -1,7 +1,5 @@
 # Liquidity Timelock contract
 
-using soroswap router
-
 ## How to test?
 
 ```bash
@@ -30,7 +28,14 @@ cd /workspace/liquidity_timelock
 cargo scout-audit
 ```
 
-### Testnet
+### Deployment
+1.- Be sure to have your secrets
+```
+cp .env.example .env
+```
+Set your `ADMIN_SECRET_KEY` and `MAINNET_RPC_URL`.
+
+2.- Deploy in testnet with a number of seconds from now
 
 to test on testnet using the soroswap deployment do this
 This will initialize with a timelock of one hour, add liquidity and claim... claim should fail if you run the test again after 1 hours of it being run for the first time it should pass the claim function
