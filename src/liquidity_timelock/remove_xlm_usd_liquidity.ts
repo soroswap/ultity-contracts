@@ -65,44 +65,34 @@ export async function liquidityTimelock(
   let lpContractBalanceBigInt = scValToBigInt(lpContractBalance.result.retval);
   console.log("🚀 ~ lpContractBalanceBigInt.toString():", lpContractBalanceBigInt.toString())
 
+  // now show user LP balance
+  let lpUserBalance = await invokeCustomContract(
+    xlm_usdc_lp_address,
+    "balance",
+    [new Address(loadedConfig.admin.publicKey()).toScVal()],
+    loadedConfig.admin,
+    true
+  );
+  let lpUserBalanceBigInt = scValToBigInt(lpUserBalance.result.retval);
+  console.log("🚀 ~ lpUserBalanceBigInt.toString():", lpUserBalanceBigInt.toString())
+
   console.log("-------------------------------------------------------");
-  console.log("Adding XLM-USDC Liquidity Using the Soroswap Liquidity TimelockContract");
+  console.log("Removing XLM-USDC Liquidity Using the Soroswap Liquidity TimelockContract");
   console.log("-------------------------------------------------------");
   try {
     
-  //   fn add_liquidity(
-  //     e: Env,
-  //     token_a: Address,
-  //     token_b: Address,
-  //     amount_a: i128,
-  //     amount_b: i128,
-  //     amount_a_min: i128,
-  //     amount_b_min: i128,
-  //     from: Address,
-  //     deadline: u64,
-  // ) -> Result<(i128, i128, i128), CombinedLiquidityTimelockError>;
-    const addLiquidityParams = [
-      new Address(
-        loadedConfig.xlm_address
-      ).toScVal(), //     token_a: Address,
-      new Address(
-        loadedConfig.usdc_address
-      ).toScVal(),   //     token_b: Address,
-      nativeToScVal(xlmUserBalanceMinus100, { type: "i128" }), //     amount_a: i128,
-      nativeToScVal(usdcUserBalanceBigInt, { type: "i128" }), //     amount_b: i128,
-      nativeToScVal(0, { type: "i128" }), //     amount_a_min: i128,
-      nativeToScVal(0, { type: "i128" }), //     amount_b_min: i128,
-      new Address(loadedConfig.admin.publicKey()).toScVal(), //from account address
-      nativeToScVal(getCurrentTimePlusOneHour(), { type: "u64" }), //deadline
-    ];
+    console.log("First we will claim the LP tokens from the contract");
+    // fn claim(e: Env, pair_address: Address) -> Result<(), CombinedLiquidityTimelockError> {
+  
+    const claimParams = [new Address(xlm_usdc_lp_address).toScVal()];
 
     const result = await invokeCustomContract(
       addressBook.getContractId(contractKey),
-      "add_liquidity",
-      addLiquidityParams,
+      "claim",
+      claimParams,
       loadedConfig.admin
     );
-    console.log("🚀 Done! :)");
+    console.log("🚀 Done claiming! :)");
 
     let newLPContractBalance = await invokeCustomContract(
       xlm_usdc_lp_address,
@@ -113,6 +103,75 @@ export async function liquidityTimelock(
     );
     let newLPContractBalanceBigInt = scValToBigInt(newLPContractBalance.result.retval);
     console.log("🚀 ~ newLPContractBalanceBigInt.toString():", newLPContractBalanceBigInt.toString())
+
+    // new user LP balance
+    let newLPUserBalance = await invokeCustomContract(
+      xlm_usdc_lp_address,
+      "balance",
+      [new Address(loadedConfig.admin.publicKey()).toScVal()],
+      loadedConfig.admin,
+      true
+    );
+    let newLPUserBalanceBigInt = scValToBigInt(newLPUserBalance.result.retval);
+    console.log("🚀 ~ newLPUserBalanceBigInt.toString():", newLPUserBalanceBigInt.toString())
+
+
+    console.log("Now we will remove the liquidity from the contract");
+   
+  //   fn remove_liquidity(
+  //     e: Env,
+  //     token_a: Address,
+  //     token_b: Address,
+  //     liquidity: i128,
+  //     amount_a_min: i128,
+  //     amount_b_min: i128,
+  //     to: Address,
+  //     deadline: u64,
+  // ) -> Result<(i128, i128), CombinedRouterError>;
+
+    const removeLiquidityParams = [
+      new Address(
+        loadedConfig.xlm_address
+      ).toScVal(), //     token_a: Address,
+      new Address(
+        loadedConfig.usdc_address
+      ).toScVal(),   //     token_b: Address,
+      nativeToScVal(newLPUserBalanceBigInt, { type: "i128" }), //     liquidity: i128,
+      nativeToScVal(0, { type: "i128" }), //     amount_a_min: i128,
+      nativeToScVal(0, { type: "i128" }), //     amount_b_min: i128,
+      new Address(loadedConfig.admin.publicKey()).toScVal(), //to account address
+      nativeToScVal(getCurrentTimePlusOneHour(), { type: "u64" }), //deadline
+    ];
+
+    const result2 = await invokeCustomContract(
+      loadedConfig.soroswap_router,
+      "remove_liquidity",
+      removeLiquidityParams,
+      loadedConfig.admin
+    );
+    console.log("🚀 Done! :), low lets check new token balances");
+
+    // check new token balances
+    let newXlmUserBalance = await invokeCustomContract(
+      loadedConfig.xlm_address,
+      "balance",
+      [new Address(loadedConfig.admin.publicKey()).toScVal()],
+      loadedConfig.admin,
+      true
+    );
+    let newXlmUserBalanceBigInt = scValToBigInt(newXlmUserBalance.result.retval);
+    console.log("🚀 ~ newXlmUserBalanceBigInt.toString():", newXlmUserBalanceBigInt.toString())
+  
+    let newUsdcUserBalance = await invokeCustomContract(
+      loadedConfig.usdc_address,
+      "balance",
+      [new Address(loadedConfig.admin.publicKey()).toScVal()],
+      loadedConfig.admin,
+      true
+    );
+    let newUsdcUserBalanceBigInt = scValToBigInt(newUsdcUserBalance.result.retval);
+    console.log("🚀 ~ newUsdcUserBalanceBigInt.toString():", newUsdcUserBalanceBigInt.toString())
+
 
   } catch (error) {
     console.log("🚀 « error:", error);

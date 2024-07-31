@@ -6,7 +6,8 @@
     "build": "tsc",
     "deploy": "tsc && node dist/deploy.js",
     "test": "tsc && node dist/liquidity_timelock/test.js",
-    "add_xlm_usd_liquidity": "tsc && node dist/liquidity_timelock/add_xlm_usd_liquidity.js"
+    "add_xlm_usd_liquidity": "tsc && node dist/liquidity_timelock/add_xlm_usd_liquidity.js",
+    "remove_xlm_usd_liquidity": "tsc && node dist/liquidity_timelock/remove_xlm_usd_liquidity.js"
   },
   "license": "MIT",
   "devDependencies": {
