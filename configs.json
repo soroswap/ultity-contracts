@@ -23,7 +23,9 @@
             "friendbot_url": "https://friendbot.stellar.org/",
             "soroban_rpc_url": "https://soroban-testnet.stellar.org/",
             "soroban_network_passphrase": "Test SDF Network ; September 2015",
-            "soroswap_router": "CBHNQTKJD76Q55TINIT3PPP3BKLIKIQEXPTQ32GUUU7I3CHBD5JECZLW"
+            "soroswap_router": "CBHNQTKJD76Q55TINIT3PPP3BKLIKIQEXPTQ32GUUU7I3CHBD5JECZLW",
+            "end_timestamp": "1722431546"
+            
         }
     ]
 }

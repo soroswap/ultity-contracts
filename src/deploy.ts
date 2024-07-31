@@ -1,5 +1,6 @@
+import { Address, nativeToScVal, xdr } from '@stellar/stellar-sdk';
 import { AddressBook } from './utils/address_book.js';
-import { airdropAccount, deployContract, installContract, bumpContractCode} from './utils/contract.js';
+import { airdropAccount, deployContract, installContract, bumpContractCode, invokeContract} from './utils/contract.js';
 import { config } from './utils/env_config.js';
 
 export async function deployContracts(addressBook: AddressBook, contracts_to_deploy: Array<string>) {
@@ -39,59 +40,28 @@ export async function deployContracts(addressBook: AddressBook, contracts_to_dep
   //     end_timestamp: u64,
   // ) -> Result<(), CombinedLiquidityTimelockError>;
 
-
-  //   // pub struct Adapter {
-  //   //   pub protocol_id: String,
-  //   //   pub address: Address,
-  //   //   pub paused: bool,
-  // // }
-
-  // const adaptersVec = [
-  //   {
-  //     protocol_id: "soroswap",
-  //     address: new Address(addressBook.getContractId('soroswap_adapter')),
-  //     paused: false
-  //   },
-  // ];
-
-  // const adaptersVecScVal = xdr.ScVal.scvVec(adaptersVec.map((adapter) => {
-  //   return xdr.ScVal.scvMap([
-  //     new xdr.ScMapEntry({
-  //       key: xdr.ScVal.scvSymbol('address'),
-  //       val: adapter.address.toScVal(),
-  //     }),
-  //     new xdr.ScMapEntry({
-  //       key: xdr.ScVal.scvSymbol('paused'),
-  //       val: nativeToScVal(adapter.paused),
-  //     }),
-  //     new xdr.ScMapEntry({
-  //       key: xdr.ScVal.scvSymbol('protocol_id'),
-  //       val: xdr.ScVal.scvString(adapter.protocol_id),
-  //     }),
-  //   ]);
-  // }));
-
-
-  // // fn initialize(e: Env, admin: Address, adapter_vec: Vec<Adapter>)
-  // const aggregatorInitParams: xdr.ScVal[] = [ 
-  //   new Address(loadedConfig.admin.publicKey()).toScVal(), //admin: Address,
-  //   adaptersVecScVal, // adapter_vec: Vec<Adapter>,
-  // ];
-
-  // console.log("Initializing Aggregator")
   
-  // await invokeContract(
-  //   'aggregator',
-  //   addressBook,
-  //   'initialize',
-  //   aggregatorInitParams,
-  //   loadedConfig.admin
-  // );
-  // console.log("Aggregator initialized")
-    // await bumpContractCode(contract_name, addressBook, loadedConfig.admin);
-    // let contractId = await deployContract(contract_name,contract_name, addressBook, loadedConfig.admin)
-    // // await bumpContractInstance(contract_name, addressBook, loadedConfig.admin);
-    // console.log(`Contract ID of ${contract_name} is ${contractId}\n\n`)
+  const timeloclkInitParams: xdr.ScVal[] = [ 
+    new Address(loadedConfig.admin.publicKey()).toScVal(), //admin: Address,
+    new Address(loadedConfig.soroswap_router).toScVal(), // router_address: Address,
+    nativeToScVal(loadedConfig.end_timestamp, { type: "u64" }) , // end_timestamp: u64
+  ];
+
+  await invokeContract(
+    contract_name,
+    addressBook,
+    'initialize',
+    timeloclkInitParams,
+    loadedConfig.admin
+  );
+
+  addressBook.setContractId('admin', loadedConfig.admin.publicKey());
+  addressBook.setContractId('soroswap_router', loadedConfig.soroswap_router);
+  addressBook.setContractId('end_timestamp', String(loadedConfig.end_timestamp));
+  addressBook.writeToFile();
+
+
+  console.log("Setup complete")
   }
   
 }

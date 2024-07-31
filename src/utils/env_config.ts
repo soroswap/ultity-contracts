@@ -2,6 +2,7 @@ import { Keypair, SorobanRpc } from '@stellar/stellar-sdk';
 import dotenv from "dotenv";
 import * as fs from "fs";
 import path from "path";
+import internal from 'stream';
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -13,6 +14,8 @@ interface NetworkConfig {
   friendbot_url: string;
   soroban_rpc_url: string;
   soroban_network_passphrase: string;
+  soroswap_router: string;
+  end_timestamp: number;
 }
 
 interface Config {
@@ -26,17 +29,23 @@ class EnvConfig {
   passphrase: string;
   friendbot: string | undefined;
   admin: Keypair;
+  soroswap_router: string;
+  end_timestamp: number;
 
   constructor(
     rpc: SorobanRpc.Server,
     passphrase: string,
     friendbot: string | undefined,
     admin: Keypair,
+    soroswap_router: string,
+    end_timestamp: number,
   ) {
     this.rpc = rpc;
     this.passphrase = passphrase;
     this.friendbot = friendbot;
     this.admin = admin;
+    this.soroswap_router = soroswap_router;
+    this.end_timestamp = end_timestamp;
   }
 
   /**
@@ -50,13 +59,21 @@ class EnvConfig {
     );
     const configs: Config = JSON.parse(fileContents);
 
-    let rpc_url, horizon_rpc_url, friendbot_url, passphrase;
+    let rpc_url,
+        horizon_rpc_url, 
+        friendbot_url, 
+        passphrase,
+        soroswap_router,
+        end_timestamp;
     
     const networkConfig = configs.networkConfig.find((config) => config.network === network);
+
     if (!networkConfig) {
       throw new Error(`Network configuration for '${network}' not found`);
     }
-
+    soroswap_router= networkConfig.soroswap_router;
+    end_timestamp = Number(networkConfig.end_timestamp);
+    
     if (network === 'mainnet') {
       passphrase = networkConfig.soroban_network_passphrase;
       rpc_url = process.env.MAINNET_RPC_URL;
@@ -73,7 +90,9 @@ class EnvConfig {
       rpc_url === undefined ||
       (network != "mainnet" && friendbot_url === undefined) ||
       passphrase === undefined ||
-      admin === undefined
+      admin === undefined ||
+      soroswap_router === undefined ||
+      end_timestamp === undefined
     ) {
       console.log("🚀 ~ EnvConfig ~ loadFromFile ~ admin:", admin)
       console.log("🚀 ~ EnvConfig ~ loadFromFile ~ passphrase:", passphrase)
@@ -81,7 +100,7 @@ class EnvConfig {
       console.log("🚀 ~ EnvConfig ~ loadFromFile ~ network:", network)
       console.log("🚀 ~ EnvConfig ~ loadFromFile ~ friendbot_url:", friendbot_url)
       
-      throw new Error('Error: Configuration is missing required fields, include <network>');
+      throw new Error('Error: Configuration is missing required fields');
     }
 
     const allowHttp = network === "standalone";
@@ -91,6 +110,8 @@ class EnvConfig {
       passphrase,
       friendbot_url,
       Keypair.fromSecret(admin),
+      soroswap_router,
+      end_timestamp,
     );
   }
 
