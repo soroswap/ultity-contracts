@@ -5,7 +5,8 @@
   "scripts": {
     "build": "tsc",
     "deploy": "tsc && node dist/deploy.js",
-    "test": "tsc && node dist/liquidity_timelock/test.js"
+    "test": "tsc && node dist/liquidity_timelock/test.js",
+    "add_xlm_usd_liquidity": "tsc && node dist/liquidity_timelock/add_xlm_usd_liquidity.js"
   },
   "license": "MIT",
   "devDependencies": {
@@ -22,6 +23,7 @@
   },
   "dependencies": {
     "@stellar/stellar-sdk": "^12.0.0-rc.2",
+    "bignumber.js": "^9.1.2",
     "dotenv": "^16.4.5"
   }
 }

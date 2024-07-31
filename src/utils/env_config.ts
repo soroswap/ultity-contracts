@@ -15,6 +15,8 @@ interface NetworkConfig {
   soroban_rpc_url: string;
   soroban_network_passphrase: string;
   soroswap_router: string;
+  xlm_address: string;
+  usdc_address: string;
   end_timestamp: number;
 }
 
@@ -30,6 +32,8 @@ class EnvConfig {
   friendbot: string | undefined;
   admin: Keypair;
   soroswap_router: string;
+  xlm_address: string;
+  usdc_address: string;
   end_timestamp: number;
 
   constructor(
@@ -38,6 +42,8 @@ class EnvConfig {
     friendbot: string | undefined,
     admin: Keypair,
     soroswap_router: string,
+    xlm_address: string,
+    usdc_address: string,
     end_timestamp: number,
   ) {
     this.rpc = rpc;
@@ -45,6 +51,8 @@ class EnvConfig {
     this.friendbot = friendbot;
     this.admin = admin;
     this.soroswap_router = soroswap_router;
+    this.xlm_address = xlm_address;
+    this.usdc_address = usdc_address;
     this.end_timestamp = end_timestamp;
   }
 
@@ -64,6 +72,8 @@ class EnvConfig {
         friendbot_url, 
         passphrase,
         soroswap_router,
+        xlm_address,
+        usdc_address,
         end_timestamp;
     
     const networkConfig = configs.networkConfig.find((config) => config.network === network);
@@ -71,7 +81,9 @@ class EnvConfig {
     if (!networkConfig) {
       throw new Error(`Network configuration for '${network}' not found`);
     }
-    soroswap_router= networkConfig.soroswap_router;
+    soroswap_router = networkConfig.soroswap_router;
+    xlm_address = networkConfig.xlm_address;
+    usdc_address = networkConfig.usdc_address;
     end_timestamp = Number(networkConfig.end_timestamp);
     
     if (network === 'mainnet') {
@@ -92,6 +104,8 @@ class EnvConfig {
       passphrase === undefined ||
       admin === undefined ||
       soroswap_router === undefined ||
+      xlm_address === undefined ||
+      usdc_address === undefined ||
       end_timestamp === undefined
     ) {
       console.log("🚀 ~ EnvConfig ~ loadFromFile ~ admin:", admin)
@@ -111,6 +125,8 @@ class EnvConfig {
       friendbot_url,
       Keypair.fromSecret(admin),
       soroswap_router,
+      xlm_address,
+      usdc_address,
       end_timestamp,
     );
   }
