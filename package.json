@@ -8,7 +8,8 @@
     "test": "tsc && node dist/liquidity_timelock/test.js",
     "add_xlm_usd_liquidity": "tsc && node dist/liquidity_timelock/add_xlm_usd_liquidity.js",
     "remove_xlm_usd_liquidity": "tsc && node dist/liquidity_timelock/remove_xlm_usd_liquidity.js",
-    "publish_addresses": "tsc && node dist/publish_addresses.js"
+    "publish_addresses": "tsc && node dist/publish_addresses.js",
+    "swap_1_xlm_usdc_2_hops": "tsc && node dist/liquidity_timelock/swap_1_xlm_usdc_2_hops.js"
   },
   "license": "MIT",
   "devDependencies": {
