@@ -109,7 +109,7 @@ fn add_liquidity_amounts(
         factory_client.create_pair(&token_a, &token_b);
     }
 
-    let (reserve_a, reserve_b) = soroswap_library::get_reserves(
+    let (reserve_a, reserve_b) = soroswap_library::get_reserves( 
         e.clone(),
         factory.clone(),
         token_a.clone(),
@@ -294,7 +294,7 @@ impl AddLiquidityTimelockTrait for AddLiquidityTimelock {
     ///
     /// * `CombinedLiquidityTimelockError` - If the contract is not initialized, the amounts are negative,
     ///   the deadline is exceeded, or other validation errors occur.
-    fn add_liquidity(
+    fn add_liquidity( 
         e: Env,
         token_a: Address,
         token_b: Address,
@@ -368,14 +368,25 @@ impl AddLiquidityTimelockTrait for AddLiquidityTimelock {
             }),
         ]);
 
+        // fn add_liquidity(
+        //     e: Env,
+        //     token_a: Address,
+        //     token_b: Address,
+        //     amount_a_desired: i128,
+        //     amount_b_desired: i128,
+        //     amount_a_min: i128,
+        //     amount_b_min: i128,
+        //     to: Address,
+        //     deadline: u64,
+        // ) 
         // here amunt_a and amunt_b should get exactely the same value as the amount_a_desired and amount_b_desired
-        let (amount_a, amount_b, liquidity) = soroswap_router_client.add_liquidity(
+        let (amount_a, amount_b, liquidity) = soroswap_router_client.add_liquidity( 
             &token_a,
             &token_b,
             &amount_a, // `amount_a_desired` - The desired amount of the first token to add.
             &amount_b, // `amount_b_desired` - The desired amount of the second token to add.
-            &amount_a, // `amount_a_min` - The minimum required amount of the first token to add.
-            &amount_b, // `amount_b_min` - The minimum required amount of the second token to add.
+            &0, // `amount_a_min` - The minimum required amount of the first token to add.
+            &0, // `amount_b_min` - The minimum required amount of the second token to add.
             &e.current_contract_address(),
             &deadline,
         );
