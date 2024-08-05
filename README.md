@@ -46,6 +46,10 @@ yarn
 # to deploy the contract
 yarn deploy testnet liquidity_timelock
 ```
+Or in Mainnet
+```bash
+yarn deploy mainnet liquidity_timelock
+```
 
 ### 2.- Publish Deployed Addresses and Timestamps
 Publish the deployed contract into your `public` folder, together with the admin account, soroswap router address and end_timestamp that was used when intializing the contract

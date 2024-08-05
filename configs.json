@@ -8,6 +8,7 @@
             "horizon_rpc_url": "https://horizon.stellar.org",
             "soroban_network_passphrase": "Public Global Stellar Network ; September 2015",
             "soroswap_router": "CAG5LRYQ5JVEUI5TEID72EYOVX44TTUJT5BQR2J6J77FH65PCCFAJDDH",
+            "end_timestamp": "1754416329",
             "xlm_address": "CAS3J7GYLGXMF6TDJBBYYSE3HQ6BBSMLNUQ34T6TZMYMW2EVH34XOWMA",
             "usdc_address": "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75"
         },
